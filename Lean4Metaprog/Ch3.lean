@@ -101,4 +101,49 @@ def ex_04 : Expr :=
         (mkAdd (mkMul (.bvar 1) (.bvar 2)) (.bvar 0))))
 #eval ex_04
 
+def ex_05 : Expr := mkLam `x nat (mkLam `y nat (mkAdd (.bvar 1) (.bvar 0)))
+#eval ex_05
+
+elab "ex_05" : term => return ex_05
+#check ex_05
+
+def mkString : Expr := mkConst ``String
+def appendConst : Expr := mkConst ``String.append
+def mkAppend (e₁ e₂ : Expr) : Expr := .app (.app appendConst e₁) e₂
+
+def ex_06 : Expr := mkLam `x mkString (mkAppend (mkStrLit "hello, ") (.bvar 0))
+#eval ex_06
+
+elab "ex_06" : term => return ex_06
+#check ex_06
+
+def prop : Expr := .sort .zero
+def andConst : Expr := mkConst ``And
+def mkForall (binderName : Name) (binderType : Expr) (body : Expr) : Expr :=
+  .forallE binderName binderType body .default
+
+def ex_07 : Expr := mkForall `x prop (.app (.app andConst (.bvar 0)) (.bvar 0))
+#eval ex_07
+
+elab "ex_07" : term => return ex_07
+#check ex_07
+
+def ex_08 : Expr := mkForall `d nat mkString
+#eval ex_08
+
+elab "ex_08" : term => return ex_08
+#check ex_08
+
+def ex_09 : Expr := mkLam `p prop (mkLam `hP (.bvar 0) (.bvar 0))
+#eval ex_09
+
+elab "ex_09" : term => return ex_09
+#check ex_09
+
+def ex_10 : Expr := .sort (.ofNat 7)
+#eval ex_10
+
+elab "ex_10" : term => return ex_10
+#check ex_10
+
 end Lean4Metaprog.Ch3
