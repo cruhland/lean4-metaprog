@@ -55,3 +55,29 @@ def myAssumption (mvarId : MVarId) : MetaM Bool := do
         mvarId.assign ldecl.toExpr
         return true
     return false
+
+def someNumber : Nat := (· + 2) $ 3
+#eval mkConst ``someNumber
+#eval reduce (mkConst ``someNumber)
+#reduce someNumber
+
+def traceWithTransparency
+    (e : Expr) (md : TransparencyMode) : MetaM Format
+    := do
+  ppExpr (← withTransparency md $ reduce e)
+
+@[irreducible] def irreducibleDef : Nat := 1
+def defaultDef : Nat := irreducibleDef + 1
+abbrev reducibleDef : Nat := defaultDef + 1
+abbrev reduceWithTransparency := traceWithTransparency (mkConst ``reducibleDef)
+
+#eval reduceWithTransparency .reducible
+
+set_option pp.explicit true in
+#eval reduceWithTransparency .reducible
+
+#eval reduceWithTransparency .instances
+
+#eval reduceWithTransparency .default
+
+#eval reduceWithTransparency .all
