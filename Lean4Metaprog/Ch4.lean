@@ -42,3 +42,16 @@ def constNat : Expr := mkConst ``Nat
   mvar₃.mvarId!.assign (mkConst ``Nat.succ)
   IO.println "After assigning mvar3:"
   printMVars
+
+def myAssumption (mvarId : MVarId) : MetaM Bool := do
+  -- Pass the current tactic name as argument for a better error message
+  mvarId.checkNotAssigned `myAssumption
+  mvarId.withContext do
+    let goalType ← mvarId.getType
+    for ldecl in ← getLCtx do
+      if ldecl.isImplementationDetail then continue
+      if ← isDefEq ldecl.type goalType then
+        -- Prove the goal
+        mvarId.assign ldecl.toExpr
+        return true
+    return false
