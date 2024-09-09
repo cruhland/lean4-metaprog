@@ -81,3 +81,56 @@ set_option pp.explicit true in
 #eval reduceWithTransparency .default
 
 #eval reduceWithTransparency .all
+
+open Lean.Elab.Term in
+def whnf' (e : TermElabM Syntax) : TermElabM Format := do
+  let e ← elabTermAndSynthesize (← e) none
+  ppExpr (← whnf e)
+
+#eval whnf' `(List.cons 1 [])
+#eval whnf' `(List.cons (1 + 1) [])
+#eval withTransparency .reducible $ whnf' `(List.append [1] [2])
+#eval whnf' `(λ x : Nat => x)
+#eval whnf' `(∀ x, x > 0)
+#eval whnf' `(Type 3)
+#eval whnf' `((15 : Nat))
+
+#eval whnf' `(List.append [1])
+#eval whnf' `((λ x y : Nat => x + y) 1)
+#eval whnf' `(let x : Nat := 1; x)
+
+def matchAndReducing (e : Expr) : MetaM (Option (Expr × Expr)) := do
+  match ← whnf e with
+  | .app (.app (.const ``And _) P) Q => return some (P, Q)
+  | _ => return none
+
+def matchAndReducing₂ (e : Expr) : MetaM (Option (Expr × Expr × Expr)) := do
+  match ← whnf e with
+  | .app (.app (.const ``And _) P) e' =>
+    match ← whnf e' with
+    | .app (.app (.const ``And _) Q) R => return some (P, Q, R)
+    | _ => return none
+  | _ =>
+    return none
+
+def appendAppend (xs ys : List α) := (xs.append ys).append xs
+
+set_option pp.all true in
+set_option pp.explicit true in
+#print appendAppend
+
+def appendAppendRhsExpr₁ (u : Level) (α xs ys : Expr) : Expr :=
+  mkAppN
+    (.const ``List.append [u])
+    #[α, mkAppN (.const ``List.append [u]) #[α, xs, ys], xs]
+
+def appendAppendRhsExpr₂ (xs ys : Expr) : MetaM Expr := do
+  mkAppM ``List.append #[← mkAppM ``List.append #[xs, ys], xs]
+
+def revOrd : Ord Nat where
+  compare x y := compare y x
+
+def ordExpr : MetaM Expr := do
+  mkAppOptM ``compare #[none, Expr.const ``revOrd [], mkNatLit 0, mkNatLit 1]
+
+#eval format <$> ordExpr
