@@ -134,3 +134,31 @@ def ordExpr : MetaM Expr := do
   mkAppOptM ``compare #[none, Expr.const ``revOrd [], mkNatLit 0, mkNatLit 1]
 
 #eval format <$> ordExpr
+
+def doubleExpr₁ : Expr :=
+  .lam `x constNat (mkAppN (mkConst ``Nat.add) #[.bvar 0, .bvar 0]) .default
+
+#eval ppExpr doubleExpr₁
+
+def doubleExpr₂ : MetaM Expr :=
+  withLocalDecl `x .default constNat λ x => do
+    let body ← mkAppM ``Nat.add #[x, x]
+    mkLambdaFVars #[x] body
+
+#eval show MetaM _ from do
+  ppExpr (← doubleExpr₂)
+
+def somePropExpr : MetaM Expr := do
+  let funcType ← mkArrow constNat constNat
+  withLocalDecl `f .default funcType λ f => do
+    let feqn ← withLocalDecl `n .default constNat λ n => do
+      let lhs := .app f n
+      let rhs := .app f (← mkAppM ``Nat.succ #[n])
+      let eqn ← mkEq lhs rhs
+      mkForallFVars #[n] eqn
+    mkLambdaFVars #[f] feqn
+
+elab "someProp" : term => somePropExpr
+
+#check someProp
+#reduce (types := true) someProp Nat.succ
