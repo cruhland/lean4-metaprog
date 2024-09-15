@@ -162,3 +162,38 @@ elab "someProp" : term => somePropExpr
 
 #check someProp
 #reduce (types := true) someProp Nat.succ
+
+/-! ### Deconstructing expressions -/
+
+/--
+Attempt to apply `e` to `goal`, and generate a list of new goals on success.
+-/
+def myApply (goal : MVarId) (e : Expr) : MetaM (List MVarId) := do
+  goal.checkNotAssigned `myApply
+  goal.withContext do
+    let goalType ← goal.getType
+    let exprType ← inferType e
+    -- When `exprType` has the form `∀ (x₁ : T₁) ... (xₙ : Tₙ), U`, introduce
+    -- new metavariables for the `xᵢ` in `exprArgs` and instantiate them in the
+    -- conclusion `U`, given by `exprBodyType`. When `exprType` does not have
+    -- that form, `exprArgs` is empty and `exprType = exprBodyType`.
+    let (exprArgs, _, exprBodyType) ← forallMetaTelescopeReducing exprType
+    if ! (← isDefEq goalType exprBodyType) then
+      let msg := m!"{e} is not applicable to goal with target {goalType}"
+      throwTacticEx `myApply goal msg
+    goal.assign (mkAppN e exprArgs)
+    -- `isDefEq` may have assigned some of `exprArgs`.
+    -- Report the rest as new goals.
+    let newGoals ← exprArgs.filterMapM λ mvar => do
+      let mvarId := mvar.mvarId!
+      let isAssigned := (← mvarId.isAssigned) || (← mvarId.isDelayedAssigned)
+      return if isAssigned then none else some mvarId
+    return newGoals.toList
+
+elab "myApply" e:term : tactic => do
+  let e ← Elab.Term.elabTerm e none
+  Elab.Tactic.liftMetaTactic (myApply · e)
+
+example (h : α → β) (a : α) : β := by
+  myApply h
+  myApply a
