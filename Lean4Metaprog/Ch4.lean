@@ -197,3 +197,39 @@ elab "myApply" e:term : tactic => do
 example (h : α → β) (a : α) : β := by
   myApply h
   myApply a
+
+/-! ## Backtracking -/
+
+def tryM (x : MetaM Unit) : MetaM Unit := do
+  let s ← saveState
+  try
+    x
+  catch _ =>
+    restoreState s
+
+/-! ## Exercises -/
+
+/-! ### Ex 1 -/
+#eval show MetaM Unit from do
+  let mvarNat ← mkFreshExprMVar constNat (userName := `mvarNat)
+  mvarNat.mvarId!.assign (mkNatLit 3)
+  IO.println s!"{← instantiateMVars mvarNat}"
+  let mvarNatType ← mvarNat.mvarId!.getType
+  IO.println s!"{mvarNatType}"
+
+  let mvarString ← mkFreshExprMVar (mkConst ``String) (userName := `mvarString)
+  mvarString.mvarId!.assign (mkNatLit 3)
+  IO.println s!"{← instantiateMVars mvarString}"
+  let mvarStringType ← mvarString.mvarId!.getType
+  IO.println s!"{mvarStringType}"
+
+/-! ### Ex 2 -/
+-- My answer: either `1 + 2` or
+-- `.app (.app (.const ``Nat.add) (.lit (.natVal 1))) (.lit (.natVal 2))`
+
+#eval show MetaM Expr from
+  instantiateMVars
+    (Lean.mkAppN (Expr.const `Nat.add []) #[mkNatLit 1, mkNatLit 2])
+
+-- Ah, looks like I forgot all the typeclass stuff for `OfNat`
+-- Other than that it's pretty close
