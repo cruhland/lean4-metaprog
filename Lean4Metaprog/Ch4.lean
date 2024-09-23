@@ -255,3 +255,21 @@ def mkConstAdd : Expr := mkConst ``Nat.add
   IO.println s!"{← instantiateMVars mvar₁}"
 
 -- Output looks correct to me!
+
+/-! ### Ex 4 -/
+
+elab "explore" : tactic => do
+  let mvarId : MVarId ← Lean.Elab.Tactic.getMainGoal
+  let metavarDecl : MetavarDecl ← mvarId.getDecl
+
+  IO.println "Our metavariable"
+  IO.println s!"{metavarDecl.userName} : {← mvarId.getType}"
+
+  IO.println "All of its local declarations"
+  for ldecl in metavarDecl.lctx do
+    if ldecl.isImplementationDetail then continue
+    IO.println s!"{ldecl.userName} : {ldecl.type}"
+
+theorem red (hA : 1 = 1) (hB : 2 = 2) : 2 = 2 := by
+  explore
+  sorry
