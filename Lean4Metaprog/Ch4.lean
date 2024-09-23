@@ -233,3 +233,25 @@ def tryM (x : MetaM Unit) : MetaM Unit := do
 
 -- Ah, looks like I forgot all the typeclass stuff for `OfNat`
 -- Other than that it's pretty close
+
+/-! ### Ex 3 -/
+def mkConstNat : Expr := mkConst ``Nat
+def mkConstZero : Expr := mkConst ``Nat.zero
+def mkConstSucc : Expr := mkConst ``Nat.succ
+def mkConstAdd : Expr := mkConst ``Nat.add
+
+#eval show MetaM Unit from do
+  let oneExpr := Expr.app mkConstSucc mkConstZero
+  let twoExpr := Expr.app mkConstSucc oneExpr
+
+  let mvar₁ ← mkFreshExprMVar mkConstNat (userName := `mvar1)
+  let mvar₂ ← mkFreshExprMVar mkConstNat (userName := `mvar2)
+  let mvar₃ ← mkFreshExprMVar mkConstNat (userName := `mvar3)
+
+  let twoPlusMVar2 := mkAppN mkConstAdd #[twoExpr, mvar₂]
+  mvar₁.mvarId!.assign (mkAppN mkConstAdd #[twoPlusMVar2, mvar₃])
+  mvar₃.mvarId!.assign oneExpr
+
+  IO.println s!"{← instantiateMVars mvar₁}"
+
+-- Output looks correct to me!
