@@ -60,8 +60,8 @@ def addOne : Expr :=
     BinderInfo.default
 
 def mapAddOneNil : Expr :=
-  mkAppN (.const ``List.map [levelOne, levelOne])
-    #[nat, nat, addOne, .app (.const ``List.nil [levelOne]) nat]
+  mkAppN (.const ``List.map [levelZero, levelZero])
+    #[nat, nat, addOne, .app (.const ``List.nil [levelZero]) nat]
 
 elab "mapAddOneNil" : term => return mapAddOneNil
 
