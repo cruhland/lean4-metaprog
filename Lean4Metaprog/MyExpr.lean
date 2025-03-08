@@ -1,3 +1,4 @@
+import Lean4Metaprog.MyFinSeq
 import Lean4Metaprog.MyLevel
 import Lean4Metaprog.MyName
 
@@ -34,6 +35,10 @@ def app : E → E → E := MyExpr._app
 
 /-- Convenience function for creating named constant expressions. -/
 def const : N → E := MyExpr._const
+
+/-- Function application on many arguments. -/
+def appN {S : Type → Type} [MyFinSeq S] (f : E) (args : S E) : E :=
+  MyFinSeq.foldl app f args
 
 end MyExpr
 

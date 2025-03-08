@@ -40,15 +40,16 @@ end resolve
 
 /-! ### Function applications -/
 
-open MyExpr (app const)
+open MyExpr (app appN const)
 
 def oneE : E := MyExpr.app (const ``Nat.succ) zE
 def one : Expr := oneE
 #eval one
 
 def natExpr {ℕ : Type} [MyNat ℕ] : ℕ → E :=
-  let elimZero := zE
-  let elimStep := λ nExpr => app (const ``Nat.succ) nExpr
-  MyNat.elim elimZero elimStep
+  MyNat.elim (elimZero := zE) (elimStep := app (const ``Nat.succ))
+
+def sumExpr {ℕ : Type} [MyNat ℕ] (n m : ℕ) : Expr :=
+  appN (const ``Nat.add) #[natExpr n, natExpr m]
 
 end Lean4Metaprog.MyCh3

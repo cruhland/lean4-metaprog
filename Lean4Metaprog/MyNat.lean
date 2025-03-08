@@ -20,4 +20,10 @@ class MyNat (ℕ : Type) where
   -/
   elim {X : Type} (elimZero : X) (elimStep : X → X) : ℕ → X
 
+instance mynat_nat_inst : MyNat Nat := {
+  zero := Nat.zero
+  step := Nat.succ
+  elim := λ elimZero elimStep => Nat.rec elimZero (λ _ => elimStep)
+}
+
 end Lean4Metaprog
