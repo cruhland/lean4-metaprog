@@ -4,6 +4,7 @@ import Lean4Metaprog.MyNat
 namespace Lean4Metaprog.MyCh3
 
 open Lean
+open MyExpr (app appN const lam)
 
 /-! # Chapter 3: Expressions - using My* definitions -/
 
@@ -40,8 +41,6 @@ end resolve
 
 /-! ### Function applications -/
 
-open MyExpr (app appN const)
-
 def oneE : E := MyExpr.app (const ``Nat.succ) zE
 def one : Expr := oneE
 #eval one
@@ -51,5 +50,11 @@ def natExpr {ℕ : Type} [MyNat ℕ] : ℕ → E :=
 
 def sumExpr {ℕ : Type} [MyNat ℕ] (n m : ℕ) : Expr :=
   appN (const ``Nat.add) #[natExpr n, natExpr m]
+
+/-! ### Lambda abstractions -/
+
+def constZeroE : E := lam `x (const ``Nat) (const ``Nat.zero)
+def constZero : Expr := constZeroE
+#eval constZero
 
 end Lean4Metaprog.MyCh3

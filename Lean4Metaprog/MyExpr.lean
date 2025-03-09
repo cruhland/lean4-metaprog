@@ -2,7 +2,7 @@ import Lean4Metaprog.MyFinSeq
 import Lean4Metaprog.MyLevel
 import Lean4Metaprog.MyName
 
-open Lean (Expr Level Name mkConst)
+open Lean (BinderInfo Expr Level Name mkConst)
 
 namespace Lean4Metaprog
 
@@ -12,29 +12,27 @@ expressions so far.
 -/
 class MyExpr (L N : outParam Type) [MyLevel L] [MyName N] (E : Type) where
   /-- Call a function on a single argument. -/
-  _app : E → E → E
+  app (f : E) (arg : E) : E
 
   /-- Refer to a name defined elsewhere. -/
-  _const : N → E
+  const (name : N) : E
+
+  /-- An anonymous function of a single typed argument. -/
+  lam (var_name : N) (var_type : E) (body : E) : E
 
   /-- A universe level. -/
-  _sort : L → E
+  sort (level : L) : E
 
 instance myexpr_expr_inst : MyExpr Level Name Expr := {
-  _app := .app
-  _const := mkConst
-  _sort := .sort
+  app := .app
+  const := mkConst
+  lam := (.lam · · · BinderInfo.default)
+  sort := .sort
 }
 
 variable {L N E : Type} [MyLevel L] [MyName N] [MyExpr L N E]
 
 namespace MyExpr
-
-/-- Convenience function for creating function applications. -/
-def app : E → E → E := MyExpr._app
-
-/-- Convenience function for creating named constant expressions. -/
-def const : N → E := MyExpr._const
 
 /-- Function application on many arguments. -/
 def appN {S : Type → Type} [MyFinSeq S] (f : E) (args : S E) : E :=
