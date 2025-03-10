@@ -26,4 +26,11 @@ instance mynat_nat_inst : MyNat Nat := {
   elim := λ elimZero elimStep => Nat.rec elimZero (λ _ => elimStep)
 }
 
+variable {ℕ : Type} [MyNat ℕ]
+
+/-- Support natural number literals for all `MyNat` types, for convenience. -/
+instance ofnat_mynat_inst {n : Nat} : OfNat ℕ n := {
+  ofNat := Nat.rec (zero := MyNat.zero) (succ := λ _ => MyNat.step) n
+}
+
 end Lean4Metaprog

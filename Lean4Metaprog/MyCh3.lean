@@ -1,10 +1,9 @@
 import Lean4Metaprog.MyExpr
-import Lean4Metaprog.MyNat
 
 namespace Lean4Metaprog.MyCh3
 
 open Lean
-open MyExpr (app appN const lam)
+open MyExpr (app appN bvar const lam natLit sort)
 
 /-! # Chapter 3: Expressions - using My* definitions -/
 
@@ -15,7 +14,7 @@ set_option pp.universes true in
 
 /-! ## Constructing expressions -/
 
-variable {L E : Type} [MyLevel L] [MyExpr L Name E]
+variable {L ℕ E : Type} [MyLevel L] [MyNat ℕ] [MyExpr L Name ℕ E]
 
 /-! ### Constants -/
 
@@ -56,5 +55,10 @@ def sumExpr {ℕ : Type} [MyNat ℕ] (n m : ℕ) : Expr :=
 def constZeroE : E := lam `x (const ``Nat) (const ``Nat.zero)
 def constZero : Expr := constZeroE
 #eval constZero
+
+def natE : E := const ``Nat
+def lZeroE : E := sort MyLevel.zero
+
+def addOneE : E := lam `x natE (appN (const ``Nat.add) #[bvar 0, natLit 1])
 
 end Lean4Metaprog.MyCh3
