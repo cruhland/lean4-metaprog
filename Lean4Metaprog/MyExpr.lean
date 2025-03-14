@@ -20,8 +20,11 @@ class MyExpr
   /-- Refer to a bound variable using its deBruijn index. -/
   bvar (index : ℕ) : E
 
-  /-- Refer to a previously-defined expression by name. -/
-  const (name : N) : E
+  /--
+  Refer to a previously-defined expression by name, at the provided universe
+  levels.
+  -/
+  constL {S : Type → Type} [MyFinSeq S] (name : N) (levels : S L) : E
 
   /-- An anonymous function of a single typed argument. -/
   lam (var_name : N) (var_type body : E) : E
@@ -35,7 +38,7 @@ class MyExpr
 instance myexpr_expr_inst : MyExpr Level Name Nat Expr := {
   app := .app
   bvar := .bvar
-  const := mkConst
+  constL := λ name levels => .const name (MyFinSeq.toList levels)
   lam := (.lam · · · BinderInfo.default)
   natLit := mkNatLit
   sort := .sort
@@ -48,6 +51,9 @@ namespace MyExpr
 /-- Function application on many arguments. -/
 def appN {S : Type → Type} [MyFinSeq S] (f : E) (args : S E) : E :=
   MyFinSeq.foldl app f args
+
+/-- Refer to a previously-defined expression by name. -/
+def const (name : N) : E := constL name []
 
 end MyExpr
 

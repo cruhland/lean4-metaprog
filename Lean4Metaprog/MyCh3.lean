@@ -3,7 +3,7 @@ import Lean4Metaprog.MyExpr
 namespace Lean4Metaprog.MyCh3
 
 open Lean
-open MyExpr (app appN bvar const lam natLit sort)
+open MyExpr (app appN bvar const constL lam natLit sort)
 
 /-! # Chapter 3: Expressions - using My* definitions -/
 
@@ -47,7 +47,7 @@ def one : Expr := oneE
 def natExpr {ℕ : Type} [MyNat ℕ] : ℕ → E :=
   MyNat.elim (elimZero := zE) (elimStep := app (const ``Nat.succ))
 
-def sumExpr {ℕ : Type} [MyNat ℕ] (n m : ℕ) : Expr :=
+def sumExpr {ℕ : Type} [MyNat ℕ] (n m : ℕ) : E :=
   appN (const ``Nat.add) #[natExpr n, natExpr m]
 
 /-! ### Lambda abstractions -/
@@ -57,8 +57,13 @@ def constZero : Expr := constZeroE
 #eval constZero
 
 def natE : E := const ``Nat
-def lZeroE : E := sort MyLevel.zero
+def ℓ₀ : L := MyLevel.zero
 
 def addOneE : E := lam `x natE (appN (const ``Nat.add) #[bvar 0, natLit 1])
+
+def mapAddOneNilE : E :=
+  let listMapE := constL ``List.map [ℓ₀, ℓ₀]
+  let nilE := constL ``List.nil [ℓ₀]
+  appN listMapE #[natE, natE, addOneE, app nilE natE]
 
 end Lean4Metaprog.MyCh3
