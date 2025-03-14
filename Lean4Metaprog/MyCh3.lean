@@ -66,4 +66,14 @@ def mapAddOneNilE : E :=
   let nilE := constL ``List.nil [ℓ₀]
   appN listMapE #[natE, natE, addOneE, app nilE natE]
 
+elab "mapAddOneNil" : term => return mapAddOneNilE
+
+#check mapAddOneNil
+
+set_option pp.universes true in
+set_option pp.explicit true in
+#check mapAddOneNil
+
+#reduce mapAddOneNil
+
 end Lean4Metaprog.MyCh3
