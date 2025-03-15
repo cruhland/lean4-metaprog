@@ -3,7 +3,7 @@ import Lean4Metaprog.MyExpr
 namespace Lean4Metaprog.MyCh3
 
 open Lean
-open MyExpr (app appN bvar const constL lam natLit sort strLit)
+open MyExpr (app appN bvar const constL forallE lam natLit sort strLit)
 
 /-! # Chapter 3: Expressions - using My* definitions -/
 
@@ -14,7 +14,7 @@ set_option pp.universes true in
 
 /-! ## Constructing expressions -/
 
-variable {L ℕ E : Type} [MyLevel L] [MyNat ℕ] [MyExpr L Name ℕ E]
+variable {L ℕ E : Type} [MyLevel L] [MyNat ℕ] [MyExpr L ℕ E]
 
 /-! ### Constants -/
 
@@ -114,5 +114,10 @@ def ex_06 : E :=
 #eval (ex_06 : Expr)
 elab "ex_06_term" : term => return ex_06
 #check ex_06_term
+
+def ex_07 : E := forallE `x (sort ℓ₀) (appN (const ``And) #[bvar 0, bvar 0])
+#eval (ex_07 : Expr)
+elab "ex_07_term" : term => return ex_07
+#check ex_07_term
 
 end Lean4Metaprog.MyCh3

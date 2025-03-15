@@ -12,9 +12,7 @@ namespace Lean4Metaprog
 A generic version of `Lean.Expr` that captures everything I've learned about
 expressions so far.
 -/
-class MyExpr
-    (L N ℕ : outParam Type) [MyLevel L] [MyName N] [MyNat ℕ] (E : Type)
-    where
+class MyExpr (L ℕ : outParam Type) [MyLevel L] [MyNat ℕ] (E : Type) where
   /-- Call a function on a single argument. -/
   app (fn arg : E) : E
 
@@ -25,10 +23,18 @@ class MyExpr
   Refer to a previously-defined expression by name, at the provided universe
   levels.
   -/
-  constL {S : Type → Type} [MyFinSeq S] (name : N) (levels : S L) : E
+  constL
+    {N : Type} {S : Type → Type} [MyName N] [MyFinSeq S]
+    (name : N) (levels : S L) : E
 
-  /-- An anonymous function of a single typed argument. -/
-  lam (var_name : N) (var_type body : E) : E
+  /-- The type of a dependent function: `(varName : varType) → bodyType`. -/
+  forallE {N : Type} [MyName N] (varName : N) (varType bodyType : E) : E
+
+  /--
+  An anonymous function of a single, typed argument:
+  `λ (varName : varType) => body`.
+  -/
+  lam {N : Type} [MyName N] (varName : N) (varType body : E) : E
 
   /-- A natural number literal, e.g. `42`. -/
   natLit (n : ℕ) : E
@@ -39,17 +45,19 @@ class MyExpr
   /-- A string literal, e.g. `"hello"`. -/
   strLit {S : Type} [MyString S] (s : S) : E
 
-instance myexpr_expr_inst : MyExpr Level Name Nat Expr := {
+instance myexpr_expr_inst : MyExpr Level Nat Expr := {
   app := .app
   bvar := .bvar
-  constL := λ name levels => .const name (MyFinSeq.toList levels)
-  lam := (.lam · · · BinderInfo.default)
+  constL :=
+    λ name levels => Expr.const (MyName.toName name) (MyFinSeq.toList levels)
+  forallE := λ name => (.forallE (MyName.toName name) · · BinderInfo.default)
+  lam := λ name => (.lam (MyName.toName name) · · BinderInfo.default)
   natLit := mkNatLit
   sort := .sort
   strLit := λ str => mkStrLit (MyString.toString str)
 }
 
-variable {L N ℕ E : Type} [MyLevel L] [MyName N] [MyNat ℕ] [MyExpr L N ℕ E]
+variable {L ℕ E : Type} [MyLevel L] [MyNat ℕ] [MyExpr L ℕ E]
 
 namespace MyExpr
 
@@ -58,7 +66,7 @@ def appN {S : Type → Type} [MyFinSeq S] (f : E) (args : S E) : E :=
   MyFinSeq.foldl app f args
 
 /-- Refer to a previously-defined expression by name. -/
-def const (name : N) : E := constL name []
+def const {N : Type} [MyName N] (name : N) : E := constL name []
 
 end MyExpr
 
