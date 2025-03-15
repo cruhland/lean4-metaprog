@@ -2,8 +2,9 @@ import Lean4Metaprog.MyFinSeq
 import Lean4Metaprog.MyLevel
 import Lean4Metaprog.MyName
 import Lean4Metaprog.MyNat
+import Lean4Metaprog.MyString
 
-open Lean (BinderInfo Expr Level Name mkConst mkNatLit)
+open Lean (BinderInfo Expr Level Name mkConst mkNatLit mkStrLit)
 
 namespace Lean4Metaprog
 
@@ -35,6 +36,9 @@ class MyExpr
   /-- A universe level. -/
   sort (level : L) : E
 
+  /-- A string literal, e.g. `"hello"`. -/
+  strLit {S : Type} [MyString S] (s : S) : E
+
 instance myexpr_expr_inst : MyExpr Level Name Nat Expr := {
   app := .app
   bvar := .bvar
@@ -42,6 +46,7 @@ instance myexpr_expr_inst : MyExpr Level Name Nat Expr := {
   lam := (.lam · · · BinderInfo.default)
   natLit := mkNatLit
   sort := .sort
+  strLit := λ str => mkStrLit (MyString.toString str)
 }
 
 variable {L N ℕ E : Type} [MyLevel L] [MyName N] [MyNat ℕ] [MyExpr L N ℕ E]

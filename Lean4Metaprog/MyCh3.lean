@@ -3,7 +3,7 @@ import Lean4Metaprog.MyExpr
 namespace Lean4Metaprog.MyCh3
 
 open Lean
-open MyExpr (app appN bvar const constL lam natLit sort)
+open MyExpr (app appN bvar const constL lam natLit sort strLit)
 
 /-! # Chapter 3: Expressions - using My* definitions -/
 
@@ -107,5 +107,12 @@ def ex_05 : E := lam `x natE (lam `y natE (appN addE #[bvar 1, bvar 0]))
 #eval (ex_05 : Expr)
 elab "ex_05_term" : term => return ex_05
 #check ex_05_term
+
+def ex_06 : E :=
+  let body := appN (const ``String.append) #[strLit "hello, ", bvar 0]
+  lam `x (const ``String) body
+#eval (ex_06 : Expr)
+elab "ex_06_term" : term => return ex_06
+#check ex_06_term
 
 end Lean4Metaprog.MyCh3

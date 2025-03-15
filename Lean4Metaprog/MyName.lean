@@ -7,7 +7,7 @@ A generic version of `Lean.Name` that captures everything I've learned about
 names so far.
 -/
 class MyName (N : Type) where
-  -- No properties yet
+  -- No operations or properties yet
 
 instance myname_name_inst : MyName Name := {}
 
