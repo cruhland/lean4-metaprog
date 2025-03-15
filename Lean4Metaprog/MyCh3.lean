@@ -76,4 +76,36 @@ set_option pp.explicit true in
 
 #reduce mapAddOneNil
 
+/-! ## Exercises -/
+
+def addE : E := const ``Nat.add
+
+def ex_01 : E := app (app addE (natLit 1)) (natLit 2)
+#eval (ex_01 : Expr)
+elab "ex_01_term" : term => return ex_01
+#check ex_01_term
+
+def ex_02 : E := appN addE #[natLit 1, natLit 2]
+#eval (ex_02 : Expr)
+elab "ex_02_term" : term => return ex_02
+#check ex_02_term
+
+def ex_03 : E := lam `x natE (appN addE #[natLit 1, bvar 0])
+#eval (ex_03 : Expr)
+elab "ex_03_term" : term => return ex_03
+#check ex_03_term
+
+def ex_04 : E :=
+  let a := bvar 2; let b := bvar 1; let c := bvar 0
+  let body := appN addE #[appN (const ``Nat.mul) #[b, a], c]
+  lam `a natE (lam `b natE (lam `c natE body))
+#eval (ex_04 : Expr)
+elab "ex_04_term" : term => return ex_04
+#check ex_04_term
+
+def ex_05 : E := lam `x natE (lam `y natE (appN addE #[bvar 1, bvar 0]))
+#eval (ex_05 : Expr)
+elab "ex_05_term" : term => return ex_05
+#check ex_05_term
+
 end Lean4Metaprog.MyCh3
