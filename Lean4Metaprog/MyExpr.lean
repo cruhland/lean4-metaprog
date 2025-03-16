@@ -12,7 +12,7 @@ namespace Lean4Metaprog
 A generic version of `Lean.Expr` that captures everything I've learned about
 expressions so far.
 -/
-class MyExpr (L ℕ : outParam Type) [MyLevel L] [MyNat ℕ] (E : Type) where
+class MyExpr (ℕ : outParam Type) [MyNat ℕ] (E : Type) where
   /-- Call a function on a single argument. -/
   app (fn arg : E) : E
 
@@ -24,7 +24,7 @@ class MyExpr (L ℕ : outParam Type) [MyLevel L] [MyNat ℕ] (E : Type) where
   levels.
   -/
   constL
-    {N : Type} {S : Type → Type} [MyName N] [MyFinSeq S]
+    {L N : Type} {S : Type → Type} [MyLevel L] [MyName N] [MyFinSeq S]
     (name : N) (levels : S L) : E
 
   /-- The type of a dependent function: `(varName : varType) → bodyType`. -/
@@ -40,24 +40,25 @@ class MyExpr (L ℕ : outParam Type) [MyLevel L] [MyNat ℕ] (E : Type) where
   natLit (n : ℕ) : E
 
   /-- A universe level. -/
-  sort (level : L) : E
+  sort {L : Type} [MyLevel L] (level : L) : E
 
   /-- A string literal, e.g. `"hello"`. -/
   strLit {S : Type} [MyString S] (s : S) : E
 
-instance myexpr_expr_inst : MyExpr Level Nat Expr := {
+instance myexpr_expr_inst : MyExpr Nat Expr := {
   app := .app
   bvar := .bvar
-  constL :=
-    λ name levels => Expr.const (MyName.toName name) (MyFinSeq.toList levels)
+  constL := λ name levels =>
+    let lean_levels := (MyFinSeq.toList levels).map MyLevel.toLevel
+    Expr.const (MyName.toName name) lean_levels
   forallE := λ name => (.forallE (MyName.toName name) · · BinderInfo.default)
   lam := λ name => (.lam (MyName.toName name) · · BinderInfo.default)
   natLit := mkNatLit
-  sort := .sort
-  strLit := λ str => mkStrLit (MyString.toString str)
+  sort := .sort ∘ MyLevel.toLevel
+  strLit := mkStrLit ∘ MyString.toString
 }
 
-variable {L ℕ E : Type} [MyLevel L] [MyNat ℕ] [MyExpr L ℕ E]
+variable {ℕ E : Type} [MyNat ℕ] [MyExpr ℕ E]
 
 namespace MyExpr
 
@@ -66,7 +67,8 @@ def appN {S : Type → Type} [MyFinSeq S] (f : E) (args : S E) : E :=
   MyFinSeq.foldl app f args
 
 /-- Refer to a previously-defined expression by name. -/
-def const {N : Type} [MyName N] (name : N) : E := constL name []
+def const {N : Type} [MyName N] (name : N) : E :=
+  constL name ([] : List Level)
 
 end MyExpr
 

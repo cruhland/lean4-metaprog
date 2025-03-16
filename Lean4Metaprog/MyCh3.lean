@@ -14,7 +14,7 @@ set_option pp.universes true in
 
 /-! ## Constructing expressions -/
 
-variable {L ℕ E : Type} [MyLevel L] [MyNat ℕ] [MyExpr L ℕ E]
+variable {L ℕ E : Type} [MyLevel L] [MyNat ℕ] [MyExpr ℕ E]
 
 /-! ### Constants -/
 
@@ -57,7 +57,7 @@ def constZero : Expr := constZeroE
 #eval constZero
 
 def natE : E := const ``Nat
-def ℓ₀ : L := MyLevel.zero
+def ℓ₀ : Level := MyLevel.zero
 
 def addOneE : E := lam `x natE (appN (const ``Nat.add) #[bvar 0, natLit 1])
 
@@ -119,5 +119,20 @@ def ex_07 : E := forallE `x (sort ℓ₀) (appN (const ``And) #[bvar 0, bvar 0])
 #eval (ex_07 : Expr)
 elab "ex_07_term" : term => return ex_07
 #check ex_07_term
+
+def ex_08 : E := forallE `n natE (const ``String)
+#eval (ex_08 : Expr)
+elab "ex_08_term" : term => return ex_08
+#check ex_08_term
+
+def ex_09 : E := lam `p (sort ℓ₀) (lam `hP (bvar 0) (bvar 0))
+#eval (ex_09 : Expr)
+elab "ex_09_term" : term => return ex_09
+#check ex_09_term
+
+def ex_10 : E := sort (7 : Level)
+#eval (ex_10 : Expr)
+elab "ex_10_term" : term => return ex_10
+#check ex_10_term
 
 end Lean4Metaprog.MyCh3
