@@ -20,10 +20,14 @@ class MyNat (ℕ : Type) where
   -/
   elim {X : Type} (elimZero : X) (elimStep : X → X) : ℕ → X
 
+  /-- Convert any natural number type into a `Lean.Nat`. -/
+  toNat : ℕ → Nat := elim Nat.zero Nat.succ
+
 instance mynat_nat_inst : MyNat Nat := {
   zero := Nat.zero
   step := Nat.succ
   elim := λ elimZero elimStep => Nat.rec elimZero (λ _ => elimStep)
+  toNat := id
 }
 
 variable {ℕ : Type} [MyNat ℕ]

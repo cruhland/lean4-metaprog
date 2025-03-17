@@ -14,7 +14,7 @@ set_option pp.universes true in
 
 /-! ## Constructing expressions -/
 
-variable {L ℕ E : Type} [MyLevel L] [MyNat ℕ] [MyExpr ℕ E]
+variable {L E : Type} [MyLevel L] [MyExpr E]
 
 /-! ### Constants -/
 
