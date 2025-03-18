@@ -45,6 +45,9 @@ class MyExpr (E : Type) where
   /-- A string literal, e.g. `"hello"`. -/
   strLit {S : Type} [MyString S] (s : S) : E
 
+  /-- Convert any expression type to a `Lean.Expr`. -/
+  toExpr : E → Expr
+
 instance myexpr_expr_inst : MyExpr Expr := {
   app := .app
   bvar := .bvar ∘ MyNat.toNat
@@ -56,6 +59,7 @@ instance myexpr_expr_inst : MyExpr Expr := {
   natLit := mkNatLit ∘ MyNat.toNat
   sort := .sort ∘ MyLevel.toLevel
   strLit := mkStrLit ∘ MyString.toString
+  toExpr := id
 }
 
 variable {E : Type} [MyExpr E]
