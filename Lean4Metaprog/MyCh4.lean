@@ -51,7 +51,23 @@ namespace Lean4Metaprog.Ch4
     IO.println s!"  meta2: {← Lean.instantiateMVars mvar2}"
     IO.println s!"  meta3: {← Lean.instantiateMVars mvar3}"
 
+  IO.println "Metavariable assignment example"
   IO.println "Initially, all metavariables are unassigned:"
+  printMVars
+
+  -- Assign `mvar1 : Nat := ?mvar3 ?mvar2`.
+  mvar1.mvarId!.assign (.app mvar3 mvar2)
+  IO.println "After assigning mvar1:"
+  printMVars
+
+  -- Assign `mvar2 : Nat := 0`.
+  mvar2.mvarId!.assign (.const ``Nat.zero [])
+  IO.println "After assigning mvar2:"
+  printMVars
+
+  -- Assign `mvar3 : Nat → Nat := Nat.succ`.
+  mvar3.mvarId!.assign (.const ``Nat.succ [])
+  IO.println "After assigning mvar3:"
   printMVars
 
 end Lean4Metaprog.Ch4
