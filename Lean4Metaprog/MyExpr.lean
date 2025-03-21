@@ -1,5 +1,6 @@
 import Lean4Metaprog.MyFinSeq
 import Lean4Metaprog.MyLevel
+import Lean4Metaprog.MyMVarId
 import Lean4Metaprog.MyName
 import Lean4Metaprog.MyNat
 import Lean4Metaprog.MyString
@@ -36,6 +37,9 @@ class MyExpr (E : Type) where
   -/
   lam {N : Type} [MyName N] (varName : N) (varType body : E) : E
 
+  /-- Refer to a metavariable by its identifier. -/
+  mvar {M : Type} [MyMVarId M] (mvarId : M) : E
+
   /-- A natural number literal, e.g. `42`. -/
   natLit {ℕ : Type} [MyNat ℕ] (n : ℕ) : E
 
@@ -56,6 +60,7 @@ instance myexpr_expr_inst : MyExpr Expr := {
     Expr.const (MyName.toName name) lean_levels
   forallE := λ name => (.forallE (MyName.toName name) · · BinderInfo.default)
   lam := λ name => (.lam (MyName.toName name) · · BinderInfo.default)
+  mvar := .mvar ∘ MyMVarId.toMVarId
   natLit := mkNatLit ∘ MyNat.toNat
   sort := .sort ∘ MyLevel.toLevel
   strLit := mkStrLit ∘ MyString.toString
