@@ -43,8 +43,7 @@ namespace Lean4Metaprog.Ch4
   Create a fresh metavariable of type `Nat → Nat`. The `mkArrow` function
   creates a function type.
   -/
-  let natFn ← MyMetaM.mkArrow natTy natTy
-  let id3 ← MyMetaM.mkFreshMVar (natFn : Lean.Expr)
+  let id3 ← MyMetaM.mkFreshMVar (MyExpr.mkArrow natTy natTy : Lean.Expr)
 
   let mvar1 := MyExpr.mvar id1
   let mvar2 := MyExpr.mvar id2

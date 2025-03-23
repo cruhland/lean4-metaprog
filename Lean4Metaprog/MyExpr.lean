@@ -78,4 +78,10 @@ def appN {S : Type → Type} [MyFinSeq S] (f : E) (args : S E) : E :=
 /-- Refer to a previously-defined expression by name. -/
 def const {N : Type} [MyName N] (name : N) : E := constL name ([] : List Level)
 
+/--
+Creates an expression for a non-dependent function type, i.e.
+`argType → bodyType`.
+-/
+def mkArrow (argType bodyType : E) : E := forallE `x argType bodyType
+
 end Lean4Metaprog.MyExpr
