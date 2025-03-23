@@ -36,18 +36,18 @@ namespace Lean4Metaprog.Ch4
 #eval show Lean.MetaM Unit from do
   let natTy := MyExpr.const ``Nat
   -- Create two fresh metavariables of type `Nat`.
-  let id1 ← MyMetaM.mkFreshMVar natTy
-  let id2 ← MyMetaM.mkFreshMVar natTy
+  let mvid1 ← MyMetaM.mkFreshMVar natTy
+  let mvid2 ← MyMetaM.mkFreshMVar natTy
 
   /-
   Create a fresh metavariable of type `Nat → Nat`. The `mkArrow` function
   creates a function type.
   -/
-  let id3 ← MyMetaM.mkFreshMVar (MyExpr.mkArrow natTy natTy : Lean.Expr)
+  let mvid3 ← MyMetaM.mkFreshMVar (MyExpr.mkArrow natTy natTy : Lean.Expr)
 
-  let mvar1 := MyExpr.mvar id1
-  let mvar2 := MyExpr.mvar id2
-  let mvar3 := MyExpr.mvar id3
+  let mvar1 := MyExpr.mvar mvid1
+  let mvar2 := MyExpr.mvar mvid2
+  let mvar3 := MyExpr.mvar mvid3
 
   -- Define a helper function that prints each metavariable.
   let printMVars : Lean.MetaM Unit := do
@@ -60,17 +60,17 @@ namespace Lean4Metaprog.Ch4
   printMVars
 
   -- Assign `mvar1 : Nat := ?mvar3 ?mvar2`.
-  id1.assign (MyExpr.app mvar3 mvar2)
+  mvid1.assign (MyExpr.app mvar3 mvar2)
   IO.println "After assigning mvar1:"
   printMVars
 
   -- Assign `mvar2 : Nat := 0`.
-  id2.assign (MyExpr.const ``Nat.zero)
+  mvid2.assign (MyExpr.const ``Nat.zero)
   IO.println "After assigning mvar2:"
   printMVars
 
   -- Assign `mvar3 : Nat → Nat := Nat.succ`.
-  id3.assign (MyExpr.const ``Nat.succ)
+  mvid3.assign (MyExpr.const ``Nat.succ)
   IO.println "After assigning mvar3:"
   printMVars
 
