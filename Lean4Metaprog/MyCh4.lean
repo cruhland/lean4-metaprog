@@ -33,7 +33,7 @@ namespace Lean4Metaprog.Ch4
 #check Lean.instantiateMVars
 -- MyMetaM equivalents not needed yet
 
-#eval show Lean.MetaM Unit from do
+def metavariableExample {E : Type} [MyExpr E] : Lean.MetaM Unit := do
   let natTy := MyExpr.const ``Nat
   -- Create two fresh metavariables of type `Nat`.
   let mvid1 ← MyMetaM.mkFreshMVar natTy
@@ -43,7 +43,7 @@ namespace Lean4Metaprog.Ch4
   Create a fresh metavariable of type `Nat → Nat`. The `mkArrow` function
   creates a function type.
   -/
-  let mvid3 ← MyMetaM.mkFreshMVar (MyExpr.mkArrow natTy natTy : Lean.Expr)
+  let mvid3 ← MyMetaM.mkFreshMVar (MyExpr.mkArrow natTy natTy : E)
 
   let mvar1 := MyExpr.mvar mvid1
   let mvar2 := MyExpr.mvar mvid2
@@ -73,5 +73,7 @@ namespace Lean4Metaprog.Ch4
   mvid3.assign (MyExpr.const ``Nat.succ)
   IO.println "After assigning mvar3:"
   printMVars
+
+#eval metavariableExample (E := Lean.Expr)
 
 end Lean4Metaprog.Ch4
