@@ -51,9 +51,9 @@ def metavariableExample {E : Type} [E : MyExpr E] : Lean.MetaM Unit := do
 
   -- Define a helper function that prints each metavariable.
   let printMVars : Lean.MetaM Unit := do
-    IO.println s!"  meta1: {MyExpr.toExpr (← MyMetaM.instantiateMVars mvar1)}"
-    IO.println s!"  meta2: {MyExpr.toExpr (← MyMetaM.instantiateMVars mvar2)}"
-    IO.println s!"  meta3: {MyExpr.toExpr (← MyMetaM.instantiateMVars mvar3)}"
+    IO.println s!"  meta1: {← MyMetaM.instantiateMVars mvar1}"
+    IO.println s!"  meta2: {← MyMetaM.instantiateMVars mvar2}"
+    IO.println s!"  meta3: {← MyMetaM.instantiateMVars mvar3}"
 
   IO.println "Metavariable assignment example"
   IO.println "Initially, all metavariables are unassigned:"

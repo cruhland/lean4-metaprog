@@ -71,6 +71,10 @@ variable {E : Type} [MyExpr E]
 
 namespace MyExpr
 
+instance myexpr_tostring_inst : ToString E := {
+  toString := toString ∘ toExpr
+}
+
 /-- Function application on many arguments. -/
 def appN {S : Type → Type} [MyFinSeq S] (f : E) (args : S E) : E :=
   MyFinSeq.foldl app f args
