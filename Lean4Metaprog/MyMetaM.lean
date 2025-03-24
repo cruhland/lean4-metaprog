@@ -26,6 +26,9 @@ class MyMetaM (M : Type → Type) where
   -/
   instantiateMVars {E : Type} [MyExpr E] (expr : E) : M ExprOut
 
+  /-- Unsafely fill in the value of a metavariable (no validity checks). -/
+  assign {E : Type} [MyExpr E] (mvar : MVarId) (val : E) : M Unit
+
 instance mymetam_metam_inst : MyMetaM Lean.MetaM := {
   MVarId := Lean.MVarId
   myMVarId := inferInstance
@@ -35,6 +38,7 @@ instance mymetam_metam_inst : MyMetaM Lean.MetaM := {
     let exprMVar ← Lean.Meta.mkFreshExprMVar (MyExpr.toExpr type)
     return exprMVar.mvarId!
   instantiateMVars := Lean.instantiateMVars ∘ MyExpr.toExpr
+  assign := λ mvarId => mvarId.assign ∘ MyExpr.toExpr
 }
 
 namespace MyMetaM

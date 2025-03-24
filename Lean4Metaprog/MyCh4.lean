@@ -60,17 +60,17 @@ def metavariableExample {E : Type} [E : MyExpr E] : Lean.MetaM Unit := do
   printMVars
 
   -- Assign `mvar1 : Nat := ?mvar3 ?mvar2`.
-  mvid1.assign (E.toExpr (E.app mvar3 mvar2))
+  MyMetaM.assign mvid1 (E.app mvar3 mvar2)
   IO.println "After assigning mvar1:"
   printMVars
 
   -- Assign `mvar2 : Nat := 0`.
-  mvid2.assign (MyExpr.const ``Nat.zero)
+  MyMetaM.assign mvid2 (E.const ``Nat.zero)
   IO.println "After assigning mvar2:"
   printMVars
 
   -- Assign `mvar3 : Nat → Nat := Nat.succ`.
-  mvid3.assign (MyExpr.const ``Nat.succ)
+  MyMetaM.assign mvid3 (E.const ``Nat.succ)
   IO.println "After assigning mvar3:"
   printMVars
 
