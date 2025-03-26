@@ -4,7 +4,7 @@ import Lean4Metaprog.MyMVarId
 namespace Lean4Metaprog
 
 /-- The parts of the `Lean.MetaM` interface that I've used so far. -/
-class MyMetaM (M : Type → Type) where
+class MyMetaM (M : Type → Type) extends Monad M where
   /-- The type of unique identifiers for metavariables. -/
   MVarId : Type
 

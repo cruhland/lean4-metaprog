@@ -33,7 +33,10 @@ namespace Lean4Metaprog.Ch4
 #check Lean.instantiateMVars
 -- MyMetaM equivalents not needed yet
 
-def metavariableExample {E : Type} [E : MyExpr E] : Lean.MetaM Unit := do
+def metavariableExample
+    {E : Type} {M : Type → Type} [E : MyExpr E] [MyMetaM M] [MonadLiftT IO M]
+    : M Unit
+    := do
   let natTy := E.const ``Nat
   -- Create two fresh metavariables of type `Nat`.
   let mvid1 ← MyMetaM.mkFreshMVar natTy
@@ -50,7 +53,7 @@ def metavariableExample {E : Type} [E : MyExpr E] : Lean.MetaM Unit := do
   let mvar3 := E.mvar mvid3
 
   -- Define a helper function that prints each metavariable.
-  let printMVars : Lean.MetaM Unit := do
+  let printMVars : M Unit := do
     IO.println s!"  meta1: {← MyMetaM.instantiateMVars mvar1}"
     IO.println s!"  meta2: {← MyMetaM.instantiateMVars mvar2}"
     IO.println s!"  meta3: {← MyMetaM.instantiateMVars mvar3}"
@@ -74,6 +77,6 @@ def metavariableExample {E : Type} [E : MyExpr E] : Lean.MetaM Unit := do
   IO.println "After assigning mvar3:"
   printMVars
 
-#eval metavariableExample (E := Lean.Expr)
+#eval metavariableExample (E := Lean.Expr) (M := Lean.MetaM)
 
 end Lean4Metaprog.Ch4
