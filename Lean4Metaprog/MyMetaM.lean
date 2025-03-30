@@ -5,11 +5,14 @@ namespace Lean4Metaprog
 
 /-- The parts of the `Lean.MetaM` interface that I've used so far. -/
 class MyMetaM (M : Type → Type) extends Monad M where
-  /-- The type of unique identifiers for metavariables. -/
-  MVarId : Type
+  /--
+  The type of unique identifiers for metavariables that is returned from
+  operations.
+  -/
+  MVarIdOut : Type
 
-  /-- `MVarId` satisfies the properties of a metavariable ID. -/
-  myMVarId : MyMVarId MVarId
+  /-- `MVarIdOut` satisfies the properties of a metavariable ID. -/
+  myMVarIdOut : MyMVarId MVarIdOut
 
   /-- The type of expressions returned from operations. -/
   ExprOut : Type
@@ -18,7 +21,7 @@ class MyMetaM (M : Type → Type) extends Monad M where
   myExprOut : MyExpr ExprOut
 
   /-- Create a new, unique metavariable with the given type. -/
-  mkFreshMVar {E : Type} [MyExpr E] (type : E) : M MVarId
+  mkFreshMVar {E : Type} [MyExpr E] (type : E) : M MVarIdOut
 
   /--
   Return the given expression with all metavariables assigned in the current
@@ -27,26 +30,27 @@ class MyMetaM (M : Type → Type) extends Monad M where
   instantiateMVars {E : Type} [MyExpr E] (expr : E) : M ExprOut
 
   /-- Unsafely fill in the value of a metavariable (no validity checks). -/
-  assign {E : Type} [MyExpr E] (mvar : MVarId) (val : E) : M Unit
+  assign
+    {E mvId : Type} [MyExpr E] [MyMVarId mvId] (mvar : mvId) (val : E) : M Unit
 
 instance mymetam_metam_inst : MyMetaM Lean.MetaM := {
-  MVarId := Lean.MVarId
-  myMVarId := inferInstance
+  MVarIdOut := Lean.MVarId
+  myMVarIdOut := inferInstance
   ExprOut := Lean.Expr
   myExprOut := inferInstance
   mkFreshMVar := λ type => do
     let exprMVar ← Lean.Meta.mkFreshExprMVar (MyExpr.toExpr type)
     return exprMVar.mvarId!
   instantiateMVars := Lean.instantiateMVars ∘ MyExpr.toExpr
-  assign := λ mvarId => mvarId.assign ∘ MyExpr.toExpr
+  assign := λ mvarId => (MyMVarId.toMVarId mvarId).assign ∘ MyExpr.toExpr
 }
 
 namespace MyMetaM
 
 variable {M : Type → Type} [MyMetaM M]
 
-instance mymvarid_mymetam_mvarid_inst : MyMVarId (MyMetaM.MVarId M) :=
-  MyMetaM.myMVarId
+instance mymvarid_mymetam_mvaridout_inst : MyMVarId (MyMetaM.MVarIdOut M) :=
+  MyMetaM.myMVarIdOut
 
 instance myexpr_mymetam_exprout_inst : MyExpr (MyMetaM.ExprOut M) :=
   MyMetaM.myExprOut
