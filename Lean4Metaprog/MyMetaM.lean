@@ -38,9 +38,21 @@ instance mymetam_metam_inst : MyMetaM Lean.MetaM := {
   myMVarIdOut := inferInstance
   ExprOut := Lean.Expr
   myExprOut := inferInstance
-  mkFreshMVar := λ type => do
-    let exprMVar ← Lean.Meta.mkFreshExprMVar (MyExpr.toExpr type)
-    return exprMVar.mvarId!
+  mkFreshMVar := λ type =>
+    let typeExpr := MyExpr.toExpr type
+    let userName := Lean.Name.anonymous
+    let kind := Lean.MetavarKind.natural
+    let numScopeArgs := 0
+    do
+      let mvarId ← Lean.mkFreshMVarId
+      let lctx ← Lean.MonadLCtx.getLCtx
+      let localInsts ← Lean.Meta.getLocalInstances
+
+      Lean.MonadMCtx.modifyMCtx λ mctx =>
+        mctx.addExprMVarDecl
+          mvarId userName lctx localInsts typeExpr kind numScopeArgs
+
+      return mvarId
   instantiateMVars := Lean.instantiateMVars ∘ MyExpr.toExpr
   assign := λ mvarId => (MyMVarId.toMVarId mvarId).assign ∘ MyExpr.toExpr
 }
