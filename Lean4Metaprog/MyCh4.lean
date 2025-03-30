@@ -2,9 +2,11 @@ import Lean
 import Lean4Metaprog.MyExpr
 import Lean4Metaprog.MyMetaM
 
-/-! # Metavariables -/
-
 namespace Lean4Metaprog.Ch4
+
+/-! ## Metavariables -/
+
+/-! ### Basic operations -/
 
 -- Create a new metavariable
 #check Lean.Meta.mkFreshExprMVar
@@ -78,5 +80,26 @@ def metavariableExample
   printMVars
 
 #eval metavariableExample (E := Lean.Expr) (M := Lean.MetaM)
+
+/-! ### Local contexts -/
+
+-- Get the "ambient" local context.
+#check Lean.getLCtx
+
+-- Run a `MetaM` program with a given metavariable's context
+#check Lean.MVarId.withContext
+
+-- Get all information about a local hypothesis declaration
+#check Lean.FVarId.getDecl -- fails the monad if not found
+
+-- Get the most recent local declaration with the given human-readable name
+#check Lean.Meta.getLocalDeclFromUserName  -- fails the monad if not found
+
+-- Iteration over all declarations in the local context
+#check
+  (inferInstanceAs (ForIn Lean.MetaM Lean.LocalContext Lean.LocalDecl)).forIn
+
+-- Declarations that can be ignored
+#check Lean.LocalDecl.isImplementationDetail
 
 end Lean4Metaprog.Ch4
