@@ -33,6 +33,11 @@ class MyMetaM (M : Type → Type) extends Monad M where
   assign
     {E mvId : Type} [MyExpr E] [MyMVarId mvId] (mvar : mvId) (val : E) : M Unit
 
+  /-- Fail the monad if the given metavariable already has a value. -/
+  failIfAssigned
+    {mvId N : Type} [MyMVarId mvId] [MyName N]
+    (mvar : mvId) (tacticName : N) : M Unit
+
 instance mymetam_metam_inst : MyMetaM Lean.MetaM := {
   MVarIdOut := Lean.MVarId
   myMVarIdOut := inferInstance
@@ -55,6 +60,8 @@ instance mymetam_metam_inst : MyMetaM Lean.MetaM := {
     return mvarId
   instantiateMVars := Lean.instantiateMVars ∘ MyExpr.toExpr
   assign := λ mvarId => (MyMVarId.toMVarId mvarId).assign ∘ MyExpr.toExpr
+  failIfAssigned := λ mvid tacticName =>
+    (MyMVarId.toMVarId mvid).checkNotAssigned (MyName.toName tacticName)
 }
 
 namespace MyMetaM

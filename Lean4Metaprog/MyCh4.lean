@@ -112,7 +112,7 @@ def metavariableExample
 #check Lean.LocalDecl.toExpr
 
 def myAssumption (mvarId : Lean.MVarId) : Lean.MetaM Bool := do
-  mvarId.checkNotAssigned `myAssumption
+  MyMetaM.failIfAssigned mvarId `myAssumption
   mvarId.withContext do
     let target ← mvarId.getType
 
