@@ -102,4 +102,27 @@ def metavariableExample
 -- Declarations that can be ignored
 #check Lean.LocalDecl.isImplementationDetail
 
+-- Fails the `MetaM` monad if the metavariable argument is already assigned
+#check Lean.MVarId.checkNotAssigned
+
+-- Are two expressions definitionally equal (reduce to the same normal form)?
+#check Lean.Meta.isDefEq
+
+-- Creates the `Lean.Expr` for a local hypothesis
+#check Lean.LocalDecl.toExpr
+
+def myAssumption (mvarId : Lean.MVarId) : Lean.MetaM Bool := do
+  mvarId.checkNotAssigned `myAssumption
+  mvarId.withContext do
+    let target ← mvarId.getType
+
+    for ldecl in ← Lean.getLCtx do
+      if ldecl.isImplementationDetail then continue
+
+      if ← Lean.Meta.isDefEq ldecl.type target then
+        -- Prove the goal
+        mvarId.assign ldecl.toExpr
+        return true
+    return false
+
 end Lean4Metaprog.Ch4
