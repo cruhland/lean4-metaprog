@@ -120,7 +120,7 @@ def myAssumption (mvarId : Lean.MVarId) : Lean.MetaM Bool := do
     for ldecl in ← Lean.getLCtx do
       if MyLocalDecl.isImplDetail ldecl then continue
 
-      if ← Lean.Meta.isDefEq (MyLocalDecl.type ldecl) target then
+      if ← MyMetaM.isDefEq (MyLocalDecl.type ldecl) target then
         -- Prove the goal
         MyMetaM.assign mvarId (MyLocalDecl.asExpr ldecl)
         return true

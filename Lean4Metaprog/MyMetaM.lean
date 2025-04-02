@@ -20,6 +20,12 @@ class MyMetaM (M : Type → Type) extends Monad M where
   /-- `ExprOut` satisfies the properties of an expression type. -/
   myExprOut : MyExpr ExprOut
 
+  /--
+  Determine whether two expressions evaluate to the same normal form (i.e., are
+  definitionally equal).
+  -/
+  isDefEq {E : Type} [MyExpr E] (e₁ e₂ : E) : M Bool
+
   /-- Create a new, unique metavariable with the given type. -/
   mkFreshMVar {E : Type} [MyExpr E] (type : E) : M MVarIdOut
 
@@ -46,6 +52,7 @@ instance mymetam_metam_inst : MyMetaM Lean.MetaM := {
   myMVarIdOut := inferInstance
   ExprOut := Lean.Expr
   myExprOut := inferInstance
+  isDefEq := λ e₁ e₂ => Lean.Meta.isDefEq (MyExpr.toExpr e₁) (MyExpr.toExpr e₂)
   mkFreshMVar := λ type => do
     let lctx ← Lean.MonadLCtx.getLCtx
     let localInsts ← Lean.Meta.getLocalInstances

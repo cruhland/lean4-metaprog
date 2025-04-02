@@ -1,5 +1,4 @@
 On `generic` branch:
-1. Generic impl of `Lean.Meta.isDefEq`
 1. Generic type for `LocalContext`
 1. Generic impl of `Lean.getLCtx`
 1. Generic impl of `ForIn` for `MyLocalContext`
