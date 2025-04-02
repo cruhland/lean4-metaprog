@@ -38,6 +38,9 @@ class MyMetaM (M : Type → Type) extends Monad M where
     {mvId N : Type} [MyMVarId mvId] [MyName N]
     (mvar : mvId) (tacticName : N) : M Unit
 
+  /-- Retrieve the given metavariable's type, as an expression. -/
+  mvarType {mvId : Type} [MyMVarId mvId] (mvar : mvId) : M ExprOut
+
 instance mymetam_metam_inst : MyMetaM Lean.MetaM := {
   MVarIdOut := Lean.MVarId
   myMVarIdOut := inferInstance
@@ -62,6 +65,7 @@ instance mymetam_metam_inst : MyMetaM Lean.MetaM := {
   assign := λ mvarId => (MyMVarId.toMVarId mvarId).assign ∘ MyExpr.toExpr
   failIfAssigned := λ mvid tacticName =>
     (MyMVarId.toMVarId mvid).checkNotAssigned (MyName.toName tacticName)
+  mvarType := Lean.MVarId.getType ∘ MyMVarId.toMVarId
 }
 
 namespace MyMetaM

@@ -1,5 +1,4 @@
 On `generic` branch:
-1. Generic impl of `MVarId.getType`
 1. Generic type for `LocalDecl`
 1. Generic impl of `MyLocalDecl.type`
 1. Generic impl of `MyLocalDecl.isImplementationDetail`
