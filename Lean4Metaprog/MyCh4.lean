@@ -1,5 +1,6 @@
 import Lean
 import Lean4Metaprog.MyExpr
+import Lean4Metaprog.MyLocalDecl
 import Lean4Metaprog.MyMetaM
 
 namespace Lean4Metaprog.Ch4
@@ -117,7 +118,7 @@ def myAssumption (mvarId : Lean.MVarId) : Lean.MetaM Bool := do
     let target ← MyMetaM.mvarType mvarId
 
     for ldecl in ← Lean.getLCtx do
-      if ldecl.isImplementationDetail then continue
+      if MyLocalDecl.isImplDetail ldecl then continue
 
       if ← Lean.Meta.isDefEq ldecl.type target then
         -- Prove the goal
