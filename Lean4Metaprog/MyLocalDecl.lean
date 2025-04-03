@@ -6,7 +6,7 @@ namespace Lean4Metaprog
 A generic version of `Lean.LocalDecl` that captures everything I've learned
 about local variable declarations so far.
 -/
-class MyLocalDecl (L : Type) where
+class MyLocalDecl (D : Type) where
   /-- The type of expressions returned from operations. -/
   ExprOut : Type
 
@@ -14,13 +14,13 @@ class MyLocalDecl (L : Type) where
   myExprOut : MyExpr ExprOut
 
   /-- Whether this local declaration should be hidden from users. -/
-  isImplDetail (ldecl : L) : Bool
+  isImplDetail (ldecl : D) : Bool
 
   /-- The local variable's type. -/
-  type (ldecl : L) : ExprOut
+  type (ldecl : D) : ExprOut
 
   /-- The expression that references the given local variable. -/
-  asExpr (ldecl : L) : ExprOut
+  asExpr (ldecl : D) : ExprOut
 
 instance mylocaldecl_localdecl_inst : MyLocalDecl Lean.LocalDecl := {
   ExprOut := Lean.Expr
@@ -32,8 +32,8 @@ instance mylocaldecl_localdecl_inst : MyLocalDecl Lean.LocalDecl := {
 
 namespace MyLocalDecl
 
-variable {L : Type} [MyLocalDecl L]
+variable {D : Type} [MyLocalDecl D]
 
-instance mylocaldecl_myexprout_inst : MyExpr (ExprOut L) := myExprOut
+instance mylocaldecl_myexprout_inst : MyExpr (ExprOut D) := myExprOut
 
 end Lean4Metaprog.MyLocalDecl

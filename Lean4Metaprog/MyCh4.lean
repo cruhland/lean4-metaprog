@@ -117,7 +117,7 @@ def myAssumption (mvarId : Lean.MVarId) : Lean.MetaM Bool := do
   mvarId.withContext do
     let target ← MyMetaM.mvarType mvarId
 
-    for ldecl in ← Lean.getLCtx do
+    for ldecl in ← MyMetaM.localCtx do
       if MyLocalDecl.isImplDetail ldecl then continue
 
       if ← MyMetaM.isDefEq (MyLocalDecl.type ldecl) target then

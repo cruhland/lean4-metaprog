@@ -1,4 +1,5 @@
 import Lean4Metaprog.MyExpr
+import Lean4Metaprog.MyLocalContext
 import Lean4Metaprog.MyMVarId
 
 namespace Lean4Metaprog
@@ -19,6 +20,15 @@ class MyMetaM (M : Type → Type) extends Monad M where
 
   /-- `ExprOut` satisfies the properties of an expression type. -/
   myExprOut : MyExpr ExprOut
+
+  /-- The type of local contexts returned from operations. -/
+  LocalCtxOut : Type
+
+  /-- Returned local contexts satisfy all of the expected properties. -/
+  myLocalCtxOut : MyLocalContext LocalCtxOut
+
+  /-- The current local context. -/
+  localCtx : M LocalCtxOut
 
   /--
   Determine whether two expressions evaluate to the same normal form (i.e., are
@@ -52,9 +62,12 @@ instance mymetam_metam_inst : MyMetaM Lean.MetaM := {
   myMVarIdOut := inferInstance
   ExprOut := Lean.Expr
   myExprOut := inferInstance
+  LocalCtxOut := Lean.LocalContext
+  myLocalCtxOut := inferInstance
+  localCtx := Lean.getLCtx
   isDefEq := λ e₁ e₂ => Lean.Meta.isDefEq (MyExpr.toExpr e₁) (MyExpr.toExpr e₂)
   mkFreshMVar := λ type => do
-    let lctx ← Lean.MonadLCtx.getLCtx
+    let lctx ← Lean.getLCtx
     let localInsts ← Lean.Meta.getLocalInstances
     let mvarId ← Lean.mkFreshMVarId
 
@@ -79,10 +92,11 @@ namespace MyMetaM
 
 variable {M : Type → Type} [MyMetaM M]
 
-instance mymvarid_mymetam_mvaridout_inst : MyMVarId (MyMetaM.MVarIdOut M) :=
-  MyMetaM.myMVarIdOut
+instance mymvarid_mvaridout_inst : MyMVarId (MVarIdOut M) := myMVarIdOut
 
-instance myexpr_mymetam_exprout_inst : MyExpr (MyMetaM.ExprOut M) :=
-  MyMetaM.myExprOut
+instance myexpr_exprout_inst : MyExpr (ExprOut M) := myExprOut
+
+instance mylocalcontext_localctxout_inst : MyLocalContext (LocalCtxOut M) :=
+  myLocalCtxOut
 
 end Lean4Metaprog.MyMetaM
