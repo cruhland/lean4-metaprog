@@ -113,7 +113,8 @@ def metavariableExample
 #check Lean.LocalDecl.toExpr
 
 def myAssumption
-    {mvid : Type} [MyMVarId mvid] (mvarId : mvid) : Lean.MetaM Bool
+    {mvid : Type} {M : Type → Type} [MyMVarId mvid] [MyMetaM M]
+    (mvarId : mvid) : M Bool
     := do
   MyMetaM.failIfAssigned mvarId `myAssumption
   MyMetaM.withLocalCtxOf mvarId do

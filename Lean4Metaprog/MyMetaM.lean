@@ -39,7 +39,7 @@ class MyMetaM (M : Type → Type) extends Monad M where
   Determine whether two expressions evaluate to the same normal form (i.e., are
   definitionally equal).
   -/
-  isDefEq {E : Type} [MyExpr E] (e₁ e₂ : E) : M Bool
+  isDefEq {E₁ E₂ : Type} [MyExpr E₁] [MyExpr E₂] : E₁ → E₂ → M Bool
 
   /-- Create a new, unique metavariable with the given type. -/
   mkFreshMVar {E : Type} [MyExpr E] (type : E) : M MVarIdOut
