@@ -112,7 +112,9 @@ def metavariableExample
 -- Creates the `Lean.Expr` for a local hypothesis
 #check Lean.LocalDecl.toExpr
 
-def myAssumption (mvarId : Lean.MVarId) : Lean.MetaM Bool := do
+def myAssumption
+    {mvid : Type} [MyMVarId mvid] (mvarId : mvid) : Lean.MetaM Bool
+    := do
   MyMetaM.failIfAssigned mvarId `myAssumption
   MyMetaM.withLocalCtxOf mvarId do
     let target ← MyMetaM.mvarType mvarId
