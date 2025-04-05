@@ -129,4 +129,10 @@ def myAssumption
         return true
     return false
 
+/-! ### Delayed assignments -/
+
+/-! ### Metavariable depth -/
+
+#check Lean.Meta.withNewMCtxDepth
+
 end Lean4Metaprog.Ch4
