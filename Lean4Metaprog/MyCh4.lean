@@ -114,7 +114,7 @@ def metavariableExample
 
 def myAssumption (mvarId : Lean.MVarId) : Lean.MetaM Bool := do
   MyMetaM.failIfAssigned mvarId `myAssumption
-  mvarId.withContext do
+  MyMetaM.withLocalCtxOf mvarId do
     let target ← MyMetaM.mvarType mvarId
 
     for ldecl in ← MyMetaM.localCtx do

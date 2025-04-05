@@ -31,6 +31,11 @@ class MyMetaM (M : Type → Type) extends Monad M where
   localCtx : M LocalCtxOut
 
   /--
+  Interpret a metavariable action with the local context of a metavariable.
+  -/
+  withLocalCtxOf {α mvId : Type} [MyMVarId mvId] : mvId → M α → M α
+
+  /--
   Determine whether two expressions evaluate to the same normal form (i.e., are
   definitionally equal).
   -/
@@ -65,6 +70,7 @@ instance mymetam_metam_inst : MyMetaM Lean.MetaM := {
   LocalCtxOut := Lean.LocalContext
   myLocalCtxOut := inferInstance
   localCtx := Lean.getLCtx
+  withLocalCtxOf := Lean.MVarId.withContext ∘ MyMVarId.toMVarId
   isDefEq := λ e₁ e₂ => Lean.Meta.isDefEq (MyExpr.toExpr e₁) (MyExpr.toExpr e₂)
   mkFreshMVar := λ type => do
     let lctx ← Lean.getLCtx
