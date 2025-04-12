@@ -5,6 +5,8 @@ import Lean4Metaprog.MyMetaM
 
 namespace Lean4Metaprog.Ch4
 
+open MyExpr (const)
+
 /-! ## Metavariables -/
 
 /-! ### Basic operations -/
@@ -134,5 +136,25 @@ def myAssumption
 /-! ### Metavariable depth -/
 
 #check Lean.Meta.withNewMCtxDepth
+
+/-! ## Computation -/
+
+/-! ### Full normalization -/
+
+#check Lean.Meta.reduce
+
+def someNumber : Nat := (· + 2) $ 3
+
+def someNumberE {E : Type} [MyExpr E] : E := const ``someNumber
+#eval (someNumberE : Lean.Expr)
+
+def reduceNumberE
+    {E : Type} {M : Type → Type} [MyExpr E] [MyMetaM M]
+    : M (MyMetaM.ExprOut M)
+    :=
+  MyMetaM.reduce (someNumberE : E)
+
+#eval reduceNumberE (M := Lean.MetaM) (E := Lean.Expr)
+#reduce someNumber
 
 end Lean4Metaprog.Ch4
