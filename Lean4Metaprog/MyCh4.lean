@@ -173,12 +173,13 @@ def reduceNumberE
 
 #check Lean.Meta.ppExpr
 
-def traceConstWithTransparency
-    (md : Lean.Meta.TransparencyMode) (c : Lean.Name) : Lean.MetaM Std.Format
+def traceConstWithT
+    {T : Type} [MyTransparencyMode T] (md : T) (c : Lean.Name)
+    : Lean.MetaM Std.Format
     :=
-  let reduceAction := Lean.Meta.reduce (.const c [])
+  let reduceAction := MyMetaM.reduce (MyExpr.const c : Lean.Expr)
   do
-    let reducedExpr ← Lean.Meta.withTransparency md reduceAction
+    let reducedExpr ← MyMetaM.withTransparency md reduceAction
     Lean.Meta.ppExpr reducedExpr
 
 @[irreducible]
@@ -187,12 +188,14 @@ def irreducibleDef : Nat := 1
 def defaultDef : Nat := irreducibleDef + 1
 abbrev reducibleDef : Nat := defaultDef + 1
 
-#eval traceConstWithTransparency .reducible ``reducibleDef
+abbrev traceConstWithTM := traceConstWithT (T := Lean.Meta.TransparencyMode)
+
+#eval traceConstWithTM MyTransparencyMode.reducible ``reducibleDef
 
 set_option pp.explicit true in
-#eval traceConstWithTransparency .reducible ``reducibleDef
+#eval traceConstWithTM MyTransparencyMode.reducible ``reducibleDef
 
-#eval traceConstWithTransparency .instances ``reducibleDef
-#eval traceConstWithTransparency .all ``reducibleDef
+#eval traceConstWithTM MyTransparencyMode.instances ``reducibleDef
+#eval traceConstWithTM MyTransparencyMode.all ``reducibleDef
 
 end Lean4Metaprog.Ch4

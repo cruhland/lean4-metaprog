@@ -1,6 +1,7 @@
 import Lean4Metaprog.MyExpr
 import Lean4Metaprog.MyLocalContext
 import Lean4Metaprog.MyMVarId
+import Lean4Metaprog.MyTransparencyMode
 
 namespace Lean4Metaprog
 
@@ -65,6 +66,9 @@ class MyMetaM (M : Type → Type) extends Monad M where
   /-- Evalute an expression to its normal form. -/
   reduce {E : Type} [MyExpr E] : E → M ExprOut
 
+  /-- Interpret a metavariable action with the given transparency mode. -/
+  withTransparency {T α : Type} [MyTransparencyMode T] : T → M α → M α
+
 instance mymetam_metam_inst : MyMetaM Lean.MetaM := {
   MVarIdOut := Lean.MVarId
   myMVarIdOut := inferInstance
@@ -96,6 +100,8 @@ instance mymetam_metam_inst : MyMetaM Lean.MetaM := {
     (MyMVarId.toMVarId mvid).checkNotAssigned (MyName.toName tacticName)
   mvarType := Lean.MVarId.getType ∘ MyMVarId.toMVarId
   reduce := Lean.Meta.reduce ∘ MyExpr.toExpr
+  withTransparency :=
+    Lean.Meta.withTransparency ∘ MyTransparencyMode.toTransparencyMode
 }
 
 namespace MyMetaM
