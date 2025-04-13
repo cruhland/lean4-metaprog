@@ -238,4 +238,14 @@ def matchAndReducing₂
     | _ => return none
   | _ => return none
 
+/-! ### Definitional equality -/
+
+#check Lean.Meta.isDefEq
+#check MyMetaM.isDefEq
+
+#check Lean.MetavarKind
+#check Lean.MetavarKind.natural
+#check Lean.MetavarKind.synthetic
+#check Lean.MetavarKind.syntheticOpaque
+
 end Lean4Metaprog.Ch4
