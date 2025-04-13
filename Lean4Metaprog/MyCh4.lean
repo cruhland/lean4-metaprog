@@ -199,4 +199,43 @@ set_option pp.explicit true in
 #eval traceConstWithTM MyTransparencyMode.instances ``reducibleDef
 #eval traceConstWithTM MyTransparencyMode.all ``reducibleDef
 
+/-! ### Weak head normalization -/
+
+#check Lean.Meta.whnf
+
+open Lean.Elab.Term in
+def whnf' (e: TermElabM Lean.Syntax) : TermElabM Std.Format := do
+  let e ← elabTermAndSynthesize (← e) none
+  Lean.Meta.ppExpr (← Lean.Meta.whnf e)
+
+#eval whnf' `(List.cons 1 [])
+#eval whnf' `(List.cons (1 + 1) [])
+#eval Lean.Meta.withTransparency .reducible $ whnf' `(List.append [1] [2])
+#eval whnf' `(λ x : Nat => x)
+#eval whnf' `(∀ x, x > 0)
+#eval whnf' `(Type 3)
+#eval whnf' `((15 : Nat))
+
+#eval whnf' `(List.append [1])
+#eval whnf' `((λ x y => x + y) 1)
+#eval whnf' `(let x : Nat := 1; x)
+
+def matchAndReducing
+    (e : Lean.Expr) : Lean.MetaM (Option (Lean.Expr × Lean.Expr))
+    := do
+  return match ← Lean.Meta.whnf e with
+  | (.app (.app (.const ``And _) P) Q) => some (P, Q)
+  | _ => none
+
+open Lean (Expr) in
+def matchAndReducing₂
+    (e : Expr) : Lean.MetaM (Option (Expr × Expr × Expr))
+    := do
+  match ← Lean.Meta.whnf e with
+  | (.app (.app (.const ``And _) P) e') =>
+    match ← Lean.Meta.whnf e' with
+    | (.app (.app (.const ``And _) Q) R) => return some (P, Q, R)
+    | _ => return none
+  | _ => return none
+
 end Lean4Metaprog.Ch4
