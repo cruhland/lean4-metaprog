@@ -1,4 +1,5 @@
 import Lean4Metaprog.MyExpr
+import Lean4Metaprog.MyFormat
 import Lean4Metaprog.MyLocalContext
 import Lean4Metaprog.MyMVarId
 import Lean4Metaprog.MyTransparencyMode
@@ -27,6 +28,12 @@ class MyMetaM (M : Type → Type) extends Monad M where
 
   /-- Returned local contexts satisfy all of the expected properties. -/
   myLocalCtxOut : MyLocalContext LocalCtxOut
+
+  /-- The type of formatting data returned from operations. -/
+  FormatOut : Type
+
+  /-- Returned formatting datums satisfy all of the expected properties. -/
+  myFormat : MyFormat FormatOut
 
   /-- The current local context. -/
   localCtx : M LocalCtxOut
@@ -66,6 +73,11 @@ class MyMetaM (M : Type → Type) extends Monad M where
   /-- Evalute an expression to its normal form. -/
   reduce {E : Type} [MyExpr E] : E → M ExprOut
 
+  /--
+  Render an expression into a formatting directive, for human-readable display.
+  -/
+  prettyPrint {E : Type} [MyExpr E] : E → M FormatOut
+
   /-- Interpret a metavariable action with the given transparency mode. -/
   withTransparency {T α : Type} [MyTransparencyMode T] : T → M α → M α
 
@@ -76,6 +88,8 @@ instance mymetam_metam_inst : MyMetaM Lean.MetaM := {
   myExprOut := inferInstance
   LocalCtxOut := Lean.LocalContext
   myLocalCtxOut := inferInstance
+  FormatOut := Std.Format
+  myFormat := inferInstance
   localCtx := Lean.getLCtx
   withLocalCtxOf := Lean.MVarId.withContext ∘ MyMVarId.toMVarId
   isDefEq := λ e₁ e₂ => Lean.Meta.isDefEq (MyExpr.toExpr e₁) (MyExpr.toExpr e₂)
@@ -100,6 +114,7 @@ instance mymetam_metam_inst : MyMetaM Lean.MetaM := {
     (MyMVarId.toMVarId mvid).checkNotAssigned (MyName.toName tacticName)
   mvarType := Lean.MVarId.getType ∘ MyMVarId.toMVarId
   reduce := Lean.Meta.reduce ∘ MyExpr.toExpr
+  prettyPrint := Lean.Meta.ppExpr ∘ MyExpr.toExpr
   withTransparency :=
     Lean.Meta.withTransparency ∘ MyTransparencyMode.toTransparencyMode
 }
