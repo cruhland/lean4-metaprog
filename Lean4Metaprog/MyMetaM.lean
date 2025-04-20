@@ -89,6 +89,14 @@ class MyMetaM (M : Type → Type) extends Monad M where
     {N E : Type} {S : Type → Type} [MyName N] [MyExpr E] [MyFinSeq S]
     (f : N) (explicitArgs : S E) : M E
 
+  /--
+  Construct an application expression, inferring the arguments that are given
+  as `none` values.
+  -/
+  mkAppOptM
+    {N E : Type} {S : Type → Type} [MyName N] [MyExpr E] [MyFinSeq S]
+    (f : N) (args : S (Option E)) : M E
+
 instance mymetam_metam_inst : MyMetaM Lean.MetaM := {
   MVarIdOut := Lean.MVarId
   myMVarIdOut := inferInstance
@@ -129,6 +137,10 @@ instance mymetam_metam_inst : MyMetaM Lean.MetaM := {
     let n' := MyName.toName n
     let es' := ((MyFinSeq.toList es).map MyExpr.toExpr).toArray
     return MyExpr.fromExpr (← Lean.Meta.mkAppM n' es')
+  mkAppOptM := λ n eos =>
+    let n' := MyName.toName n
+    let eos' := ((MyFinSeq.toList eos).map (Option.map MyExpr.toExpr)).toArray
+    return MyExpr.fromExpr (← Lean.Meta.mkAppOptM n' eos')
 }
 
 namespace MyMetaM

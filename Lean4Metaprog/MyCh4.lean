@@ -284,12 +284,12 @@ def appendAppendRhsExpr₂
 def revOrd : Ord Nat where
   compare x y := compare y x
 
-def ordExpr : Lean.MetaM Lean.Expr := do
-  Lean.Meta.mkAppOptM
-    ``compare
-    #[none, Lean.Expr.const ``revOrd [], Lean.mkNatLit 0, Lean.mkNatLit 1]
+open MyExpr (const natLit) in
+def ordExpr {M : Type → Type} {E : Type} [MyMetaM M] [MyExpr E] : M E := do
+  let args := #[none, some (const ``revOrd), some (natLit 0), some (natLit 1)]
+  MyMetaM.mkAppOptM ``compare args
 
-#eval Lean.format <$> ordExpr
+#eval Lean.format <$> (ordExpr (M := Lean.MetaM) (E := Lean.Expr))
 
 #check Lean.Meta.mkAppOptM'
 
