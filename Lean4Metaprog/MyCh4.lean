@@ -293,4 +293,44 @@ def ordExpr {M : Type → Type} {E : Type} [MyMetaM M] [MyExpr E] : M E := do
 
 #check Lean.Meta.mkAppOptM'
 
+/-! ### Lambdas and foralls -/
+
+def doubleExpr₁ : Lean.Expr :=
+  let body := Lean.mkAppN (.const ``Nat.add []) #[.bvar 0, .bvar 0]
+  .lam `x (.const ``Nat []) body Lean.BinderInfo.default
+
+#eval Lean.Meta.ppExpr doubleExpr₁
+
+def doubleExpr₂ : Lean.MetaM Lean.Expr :=
+  Lean.Meta.withLocalDecl `x .default (.const ``Nat []) λ x => do
+    let body ← Lean.Meta.mkAppM ``Nat.add #[x, x]
+    Lean.Meta.mkLambdaFVars #[x] body
+
+#eval show Lean.MetaM _ from do
+  Lean.Meta.ppExpr (← doubleExpr₂)
+
+#check Lean.Meta.withLocalDecl
+#check Lean.Meta.mkLambdaFVars
+#check Lean.Meta.withLocalDecls
+#check Lean.Meta.mkForallFVars
+#check Lean.Meta.mkLetFVars
+#check Lean.mkArrow
+#check Lean.Meta.mkEq
+
+def somePropExpr : Lean.MetaM Lean.Expr := do
+  let natType := .const ``Nat []
+  let funcType ← Lean.mkArrow natType natType
+  Lean.Meta.withLocalDecl `f .default funcType λ f => do
+    let feqn ← Lean.Meta.withLocalDecl `n .default natType λ n => do
+      let lhs := .app f n
+      let rhs := .app f (← Lean.Meta.mkAppM ``Nat.succ #[n])
+      let eqn ← Lean.Meta.mkEq lhs rhs
+      Lean.Meta.mkForallFVars #[n] eqn
+    Lean.Meta.mkLambdaFVars #[f] feqn
+
+elab "someProp" : term => somePropExpr
+
+#check someProp
+#reduce (types := true) someProp Nat.succ
+
 end Lean4Metaprog.Ch4
