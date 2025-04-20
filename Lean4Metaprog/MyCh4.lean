@@ -260,15 +260,19 @@ set_option pp.all true in
 set_option pp.explicit true in
 #print appendAppend
 
-def appendAppendRhsExpr₁ (u : Lean.Level) (α xs ys : Lean.Expr) : Lean.Expr :=
-  Lean.mkAppN (.const ``List.append [u])
-    #[α, Lean.mkAppN (.const ``List.append [u]) #[α, xs, ys], xs]
+def appendAppendRhsExpr₁
+    {E L : Type} [MyExpr E] [MyLevel L] (u : L) (α xs ys : E) : E
+    :=
+  MyExpr.appN (MyExpr.constL ``List.append [u])
+    #[α, MyExpr.appN (MyExpr.constL ``List.append [u]) #[α, xs, ys], xs]
 
 #check Lean.Meta.mkAppM
 
-def appendAppendRhsExpr₂ (xs ys : Lean.Expr) : Lean.MetaM Lean.Expr := do
-  let subApp ← Lean.Meta.mkAppM ``List.append #[xs, ys]
-  Lean.Meta.mkAppM ``List.append #[subApp, xs]
+def appendAppendRhsExpr₂
+    {M : Type → Type} {E : Type} [MyMetaM M] [MyExpr E] (xs ys : E) : M E
+    := do
+  let subApp ← MyMetaM.mkAppM ``List.append #[xs, ys]
+  MyMetaM.mkAppM ``List.append #[subApp, xs]
 
 #check Lean.Meta.mkAppM'
 

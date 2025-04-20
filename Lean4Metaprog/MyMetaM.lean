@@ -81,6 +81,14 @@ class MyMetaM (M : Type → Type) extends Monad M where
   /-- Interpret a metavariable action with the given transparency mode. -/
   withTransparency {T α : Type} [MyTransparencyMode T] : T → M α → M α
 
+  /--
+  Construct an application expression, inferring implicit and instance
+  arguments.
+  -/
+  mkAppM
+    {N E : Type} {S : Type → Type} [MyName N] [MyExpr E] [MyFinSeq S]
+    (f : N) (explicitArgs : S E) : M E
+
 instance mymetam_metam_inst : MyMetaM Lean.MetaM := {
   MVarIdOut := Lean.MVarId
   myMVarIdOut := inferInstance
@@ -117,6 +125,10 @@ instance mymetam_metam_inst : MyMetaM Lean.MetaM := {
   prettyPrint := Lean.Meta.ppExpr ∘ MyExpr.toExpr
   withTransparency :=
     Lean.Meta.withTransparency ∘ MyTransparencyMode.toTransparencyMode
+  mkAppM := λ n es =>
+    let n' := MyName.toName n
+    let es' := ((MyFinSeq.toList es).map MyExpr.toExpr).toArray
+    return MyExpr.fromExpr (← Lean.Meta.mkAppM n' es')
 }
 
 namespace MyMetaM

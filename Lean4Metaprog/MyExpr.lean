@@ -52,6 +52,9 @@ class MyExpr (E : Type) where
   /-- Convert any expression type to a `Lean.Expr`. -/
   toExpr : E → Expr
 
+  /-- Convert a `Lean.Expr` to this expression type. -/
+  fromExpr : Expr → E
+
 instance myexpr_expr_inst : MyExpr Expr := {
   app := .app
   bvar := .bvar ∘ MyNat.toNat
@@ -65,6 +68,7 @@ instance myexpr_expr_inst : MyExpr Expr := {
   sort := .sort ∘ MyLevel.toLevel
   strLit := mkStrLit ∘ MyString.toString
   toExpr := id
+  fromExpr := id
 }
 
 variable {E : Type} [MyExpr E]
