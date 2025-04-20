@@ -224,6 +224,8 @@ def matchAndReducing
     (e : Lean.Expr) : Lean.MetaM (Option (Lean.Expr × Lean.Expr))
     := do
   return match ← Lean.Meta.whnf e with
+  /- The equivalent of pattern matching on `MyExpr` would be very tedious,
+     so don't bother. -/
   | (.app (.app (.const ``And _) P) Q) => some (P, Q)
   | _ => none
 
@@ -247,5 +249,44 @@ def matchAndReducing₂
 #check Lean.MetavarKind.natural
 #check Lean.MetavarKind.synthetic
 #check Lean.MetavarKind.syntheticOpaque
+
+/-! ## Constructing expressions -/
+
+/-! ### Applications -/
+
+def appendAppend (xs ys : List α) := (xs.append ys).append xs
+
+set_option pp.all true in
+set_option pp.explicit true in
+#print appendAppend
+
+def appendAppendRhsExpr₁ (u : Lean.Level) (α xs ys : Lean.Expr) : Lean.Expr :=
+  Lean.mkAppN (.const ``List.append [u])
+    #[α, Lean.mkAppN (.const ``List.append [u]) #[α, xs, ys], xs]
+
+#check Lean.Meta.mkAppM
+
+def appendAppendRhsExpr₂ (xs ys : Lean.Expr) : Lean.MetaM Lean.Expr := do
+  let subApp ← Lean.Meta.mkAppM ``List.append #[xs, ys]
+  Lean.Meta.mkAppM ``List.append #[subApp, xs]
+
+#check Lean.Meta.mkAppM'
+
+-- #eval Lean.Meta.mkAppM ``List.append #[]
+-- Produces error: AppBuilder for 'mkAppM', result contains metavariables
+
+#check Lean.Meta.mkAppOptM
+
+def revOrd : Ord Nat where
+  compare x y := compare y x
+
+def ordExpr : Lean.MetaM Lean.Expr := do
+  Lean.Meta.mkAppOptM
+    ``compare
+    #[none, Lean.Expr.const ``revOrd [], Lean.mkNatLit 0, Lean.mkNatLit 1]
+
+#eval Lean.format <$> ordExpr
+
+#check Lean.Meta.mkAppOptM'
 
 end Lean4Metaprog.Ch4
