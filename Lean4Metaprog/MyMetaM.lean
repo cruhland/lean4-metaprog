@@ -17,6 +17,14 @@ class MyMetaM (M : Type → Type) extends Monad M where
   /-- `MVarIdOut` satisfies the properties of a metavariable ID. -/
   myMVarIdOut : MyMVarId MVarIdOut
 
+  /--
+  The type of unique identifiers for free variables returned from operations.
+  -/
+  FVarIdOut : Type
+
+  /-- `FVarIdOut` satisfies the properties of a free variable identifier. -/
+  myFVarIdOut : MyFVarId FVarIdOut
+
   /-- The type of expressions returned from operations. -/
   ExprOut : Type
 
@@ -97,9 +105,26 @@ class MyMetaM (M : Type → Type) extends Monad M where
     {N E : Type} {S : Type → Type} [MyName N] [MyExpr E] [MyFinSeq S]
     (f : N) (args : S (Option E)) : M E
 
+  /--
+  Interpret a metavariable action with the given temporary local variable.
+  -/
+  withLocalDecl
+    {α N E : Type} [MyName N] [MyExpr E]
+    (name : N) (type : E) (k : FVarIdOut → M α) : M α
+
+  /--
+  Abtracts the given free variable and metavariable expressions from the given
+  body expression, producing a lambda expression.
+  -/
+  mkLambdaFVars
+    {E : Type} {S : Type → Type} [MyExpr E] [MyFinSeq S]
+    (args : S E) (body : E) : M E
+
 instance mymetam_metam_inst : MyMetaM Lean.MetaM := {
   MVarIdOut := Lean.MVarId
   myMVarIdOut := inferInstance
+  FVarIdOut := Lean.FVarId
+  myFVarIdOut := inferInstance
   ExprOut := Lean.Expr
   myExprOut := inferInstance
   LocalCtxOut := Lean.LocalContext
@@ -141,6 +166,14 @@ instance mymetam_metam_inst : MyMetaM Lean.MetaM := {
     let n' := MyName.toName n
     let eos' := ((MyFinSeq.toList eos).map (Option.map MyExpr.toExpr)).toArray
     return MyExpr.fromExpr (← Lean.Meta.mkAppOptM n' eos')
+  withLocalDecl := λ n t k =>
+    -- Can't avoid `fvarId!` here, `fvExpr` is baked into Lean's data structures
+    let k' := λ fvExpr => k fvExpr.fvarId!
+    Lean.Meta.withLocalDecl (MyName.toName n) .default (MyExpr.toExpr t) k'
+  mkLambdaFVars := λ args body =>
+    let args' := ((MyFinSeq.toList args).map MyExpr.toExpr).toArray
+    let body' := MyExpr.toExpr body
+    return MyExpr.fromExpr (← Lean.Meta.mkLambdaFVars args' body')
 }
 
 namespace MyMetaM
@@ -148,6 +181,8 @@ namespace MyMetaM
 variable {M : Type → Type} [MyMetaM M]
 
 instance mymvarid_mvaridout_inst : MyMVarId (MVarIdOut M) := myMVarIdOut
+
+instance myfvarid_mfvaridout_inst : MyFVarId (FVarIdOut M) := myFVarIdOut
 
 instance myexpr_exprout_inst : MyExpr (ExprOut M) := myExprOut
 

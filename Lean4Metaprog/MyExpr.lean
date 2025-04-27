@@ -1,4 +1,5 @@
 import Lean4Metaprog.MyFinSeq
+import Lean4Metaprog.MyFVarId
 import Lean4Metaprog.MyLevel
 import Lean4Metaprog.MyMVarId
 import Lean4Metaprog.MyName
@@ -31,6 +32,9 @@ class MyExpr (E : Type) where
   /-- The type of a dependent function: `(varName : varType) → bodyType`. -/
   forallE {N : Type} [MyName N] (varName : N) (varType bodyType : E) : E
 
+  /-- Refer to a free variable by its identifier. -/
+  fvar {F : Type} [MyFVarId F] (fvarId : F) : E
+
   /--
   An anonymous function of a single, typed argument:
   `λ (varName : varType) => body`.
@@ -62,6 +66,7 @@ instance myexpr_expr_inst : MyExpr Expr := {
     let lean_levels := (MyFinSeq.toList levels).map MyLevel.toLevel
     Expr.const (MyName.toName name) lean_levels
   forallE := λ name => (.forallE (MyName.toName name) · · BinderInfo.default)
+  fvar := .fvar ∘ MyFVarId.toFVarId
   lam := λ name => (.lam (MyName.toName name) · · BinderInfo.default)
   mvar := .mvar ∘ MyMVarId.toMVarId
   natLit := mkNatLit ∘ MyNat.toNat

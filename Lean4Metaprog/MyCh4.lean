@@ -295,16 +295,18 @@ def ordExpr {M : Type → Type} {E : Type} [MyMetaM M] [MyExpr E] : M E := do
 
 /-! ### Lambdas and foralls -/
 
-def doubleExpr₁ : Lean.Expr :=
-  let body := Lean.mkAppN (.const ``Nat.add []) #[.bvar 0, .bvar 0]
-  .lam `x (.const ``Nat []) body Lean.BinderInfo.default
+def doubleExpr₁ {E : Type} [MyExpr E] : E :=
+  let bvar0 := MyExpr.bvar 0
+  let body := MyExpr.appN (MyExpr.const ``Nat.add) #[bvar0, bvar0]
+  MyExpr.lam `x (MyExpr.const ``Nat) body
 
-#eval Lean.Meta.ppExpr doubleExpr₁
+#eval MyMetaM.prettyPrint (M := Lean.MetaM) (E := Lean.Expr) doubleExpr₁
 
-def doubleExpr₂ : Lean.MetaM Lean.Expr :=
-  Lean.Meta.withLocalDecl `x .default (.const ``Nat []) λ x => do
-    let body ← Lean.Meta.mkAppM ``Nat.add #[x, x]
-    Lean.Meta.mkLambdaFVars #[x] body
+def doubleExpr₂ {M : Type → Type} {E : Type} [MyMetaM M] [MyExpr E] : M E :=
+  MyMetaM.withLocalDecl `x (MyExpr.const ``Nat : E) λ xId => do
+    let x := MyExpr.fvar xId
+    let body ← MyMetaM.mkAppM ``Nat.add #[x, x]
+    MyMetaM.mkLambdaFVars #[x] body
 
 #eval show Lean.MetaM _ from do
   Lean.Meta.ppExpr (← doubleExpr₂)
