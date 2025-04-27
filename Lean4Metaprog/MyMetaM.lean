@@ -113,12 +113,23 @@ class MyMetaM (M : Type → Type) extends Monad M where
     (name : N) (type : E) (k : FVarIdOut → M α) : M α
 
   /--
-  Abtracts the given free variable and metavariable expressions from the given
+  Abstract the given free variable and metavariable expressions from the given
   body expression, producing a lambda expression.
   -/
   mkLambdaFVars
     {E : Type} {S : Type → Type} [MyExpr E] [MyFinSeq S]
     (args : S E) (body : E) : M E
+
+  /--
+  Abstract the given free variable and metavariable expressions from the given
+  body expression, producing a forall expression.
+  -/
+  mkForallFVars
+    {E : Type} {S : Type → Type} [MyExpr E] [MyFinSeq S]
+    (args : S E) (body : E) : M E
+
+  /-- Construct the propositional equality between the given expressions. -/
+  mkEq {E : Type} [MyExpr E] (e₁ e₂ : E) : M E
 
 instance mymetam_metam_inst : MyMetaM Lean.MetaM := {
   MVarIdOut := Lean.MVarId
@@ -174,6 +185,14 @@ instance mymetam_metam_inst : MyMetaM Lean.MetaM := {
     let args' := ((MyFinSeq.toList args).map MyExpr.toExpr).toArray
     let body' := MyExpr.toExpr body
     return MyExpr.fromExpr (← Lean.Meta.mkLambdaFVars args' body')
+  mkForallFVars := λ args body =>
+    let args' := ((MyFinSeq.toList args).map MyExpr.toExpr).toArray
+    let body' := MyExpr.toExpr body
+    return MyExpr.fromExpr (← Lean.Meta.mkForallFVars args' body')
+  mkEq := λ e₁ e₂ =>
+    let e₁' := MyExpr.toExpr e₁
+    let e₂' := MyExpr.toExpr e₂
+    return MyExpr.fromExpr (← Lean.Meta.mkEq e₁' e₂')
 }
 
 namespace MyMetaM
