@@ -339,4 +339,16 @@ elab "someProp" : term => somePropExpr (M := Lean.MetaM) (E := Lean.Expr)
 #check someProp
 #reduce (types := true) someProp Nat.succ
 
+/-! ### Deconstructing expressions -/
+
+#check Lean.Meta.forallTelescope
+#check Lean.Meta.forallTelescopeReducing
+#check Lean.Meta.forallBoundedTelescope
+#check Lean.Meta.forallMetaTelescope
+#check Lean.Meta.forallMetaTelescopeReducing
+#check Lean.Meta.forallMetaBoundedTelescope
+#check Lean.Meta.lambdaTelescope
+#check Lean.Meta.lambdaBoundedTelescope
+#check Lean.Meta.lambdaMetaTelescope
+
 end Lean4Metaprog.Ch4
