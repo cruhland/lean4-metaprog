@@ -134,6 +134,13 @@ class MyMetaM (M : Type → Type) extends Monad M where
   /-- Construct the propositional equality between the given expressions. -/
   mkEq {E : Type} [MyExpr E] (e₁ e₂ : E) : M E
 
+  /--
+  Creates metavariables for the arguments of a forall expression, and populates
+  the body with them. Returns the argument metavariables and the body.
+  -/
+  forallMetaTelescopeReducing
+    {E : Type} [MyExpr E] (e : E) : M (Array ExprOut × ExprOut)
+
 instance mymetam_metam_inst : MyMetaM Lean.MetaM := {
   MVarIdOut := Lean.MVarId
   myMVarIdOut := inferInstance
@@ -197,6 +204,10 @@ instance mymetam_metam_inst : MyMetaM Lean.MetaM := {
     let e₁' := MyExpr.toExpr e₁
     let e₂' := MyExpr.toExpr e₂
     return MyExpr.fromExpr (← Lean.Meta.mkEq e₁' e₂')
+  forallMetaTelescopeReducing := λ e => do
+    let expr := MyExpr.toExpr e
+    let (args, _, body) ← Lean.Meta.forallMetaTelescopeReducing expr
+    return (args, body)
 }
 
 namespace MyMetaM

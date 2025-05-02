@@ -363,7 +363,7 @@ def myApply
     metavariables for the `xᵢ` and obtain the conclusion `U`. (If `exprType`
     does not have this form, `args` is empty and `conclusion = exprType`).
     -/
-    let (args, _, bodyType) ← Lean.Meta.forallMetaTelescopeReducing exprType
+    let (args, bodyType) ← MyMetaM.forallMetaTelescopeReducing exprType
     if !(← MyMetaM.isDefEq goalType bodyType) then
       let msg := m!"{e} is not applicable to goal with type {goalType}"
       Lean.Meta.throwTacticEx `myApply goal msg
