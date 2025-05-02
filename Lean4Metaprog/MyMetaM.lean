@@ -43,6 +43,11 @@ class MyMetaM (M : Type → Type) extends Monad M where
   /-- Returned formatting datums satisfy all of the expected properties. -/
   myFormat : MyFormat FormatOut
 
+  /-- Fail the monad in the context of a given tactic. -/
+  throwTacticEx
+    {α N mvId : Type} [MyName N] [MyMVarId mvId]
+    (tacticName : N) (goal : mvId) (msg : Lean.MessageData) : M α
+
   /-- The current local context. -/
   localCtx : M LocalCtxOut
 
@@ -152,6 +157,8 @@ instance mymetam_metam_inst : MyMetaM Lean.MetaM := {
   myLocalCtxOut := inferInstance
   FormatOut := Std.Format
   myFormat := inferInstance
+  throwTacticEx := λ name goalId msg =>
+    Lean.Meta.throwTacticEx (MyName.toName name) (MyMVarId.toMVarId goalId) msg
   localCtx := Lean.getLCtx
   withLocalCtxOf := Lean.MVarId.withContext ∘ MyMVarId.toMVarId
   isDefEq := λ e₁ e₂ => Lean.Meta.isDefEq (MyExpr.toExpr e₁) (MyExpr.toExpr e₂)

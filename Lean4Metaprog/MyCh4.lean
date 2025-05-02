@@ -366,7 +366,7 @@ def myApply
     let (args, bodyType) ← MyMetaM.forallMetaTelescopeReducing exprType
     if !(← MyMetaM.isDefEq goalType bodyType) then
       let msg := m!"{e} is not applicable to goal with type {goalType}"
-      Lean.Meta.throwTacticEx `myApply goal msg
+      MyMetaM.throwTacticEx `myApply goal msg
     /-
     At this point we know the goal can be satisfied by applying the expression
     `e` to the metavariable arguments from the telescope.
