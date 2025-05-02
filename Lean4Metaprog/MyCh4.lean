@@ -352,7 +352,8 @@ elab "someProp" : term => somePropExpr (M := Lean.MetaM) (E := Lean.Expr)
 #check Lean.Meta.lambdaMetaTelescope
 
 def myApply
-    (goal : Lean.MVarId) (e : Lean.Expr) : Lean.MetaM (List Lean.MVarId)
+    {mvId E : Type} {M : Type → Type} [MyMVarId mvId] [MyExpr E] [MyMetaM M]
+    (goal : mvId) (e : E) : M (List (MyMetaM.MVarIdOut M))
     := do
   MyMetaM.failIfAssigned goal `myApply
   MyMetaM.withLocalCtxOf goal do
