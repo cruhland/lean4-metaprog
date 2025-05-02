@@ -75,6 +75,9 @@ class MyMetaM (M : Type → Type) extends Monad M where
   assign
     {E mvId : Type} [MyExpr E] [MyMVarId mvId] (mvar : mvId) (val : E) : M Unit
 
+  /-- Has an expression been associated with a metavariable, in any form? -/
+  isAnyAssigned {mvId : Type} [MyMVarId mvId] (mvar : mvId) : M Bool
+
   /-- Fail the monad if the given metavariable already has a value. -/
   failIfAssigned
     {mvId N : Type} [MyMVarId mvId] [MyName N]
@@ -179,6 +182,9 @@ instance mymetam_metam_inst : MyMetaM Lean.MetaM := {
     return mvarId
   instantiateMVars := Lean.instantiateMVars ∘ MyExpr.toExpr
   assign := λ mvarId => (MyMVarId.toMVarId mvarId).assign ∘ MyExpr.toExpr
+  isAnyAssigned := λ myMVarId =>
+    let mvarId := MyMVarId.toMVarId myMVarId
+    return (← mvarId.isAssigned) || (← mvarId.isDelayedAssigned)
   failIfAssigned := λ mvid tacticName =>
     (MyMVarId.toMVarId mvid).checkNotAssigned (MyName.toName tacticName)
   mvarType := Lean.MVarId.getType ∘ MyMVarId.toMVarId

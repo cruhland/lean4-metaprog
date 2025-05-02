@@ -376,9 +376,8 @@ def myApply
     Some of the args may already be assigned via unification. Return the
     unassigned ones as new goals.
     -/
-    let newGoals ← args.filterMapM λ mvarId => do
-      let assigned := (← mvarId.isAssigned) || (← mvarId.isDelayedAssigned)
-      return if assigned then none else some mvarId
+    let newGoals ← args.filterMapM λ mvarId =>
+      return if (← MyMetaM.isAnyAssigned mvarId) then none else some mvarId
     return newGoals.toList
 
 elab "myApply" e:term : tactic => do
