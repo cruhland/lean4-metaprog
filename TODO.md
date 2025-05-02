@@ -1,5 +1,4 @@
 On `generic` branch:
-1. Replace Lean's `inferType` in `myApply` with your own
 1. Replace Lean's `forallMetaTelescopeReducing` in `myApply` with your own
 1. Replace Lean's `throwTacticEx` in `myApply` with your own
 1. Replace Lean's `is(Delayed)Assigned` in `myApply` with your own

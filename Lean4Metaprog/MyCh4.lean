@@ -357,7 +357,7 @@ def myApply
   MyMetaM.failIfAssigned goal `myApply
   MyMetaM.withLocalCtxOf goal do
     let goalType ← MyMetaM.mvarType goal
-    let exprType ← Lean.Meta.inferType e
+    let exprType ← MyMetaM.inferType e
     /-
     If `exprType` has the form `∀ (x₁ : T₁) ... (xₙ : Tₙ), U`, introduce new
     metavariables for the `xᵢ` and obtain the conclusion `U`. (If `exprType`
