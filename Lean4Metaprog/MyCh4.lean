@@ -354,9 +354,9 @@ elab "someProp" : term => somePropExpr (M := Lean.MetaM) (E := Lean.Expr)
 def myApply
     (goal : Lean.MVarId) (e : Lean.Expr) : Lean.MetaM (List Lean.MVarId)
     := do
-  goal.checkNotAssigned `myApply
-  goal.withContext do
-    let goalType ← goal.getType
+  MyMetaM.failIfAssigned goal `myApply
+  MyMetaM.withLocalCtxOf goal do
+    let goalType ← MyMetaM.mvarType goal
     let exprType ← Lean.Meta.inferType e
     /-
     If `exprType` has the form `∀ (x₁ : T₁) ... (xₙ : Tₙ), U`, introduce new
@@ -364,14 +364,14 @@ def myApply
     does not have this form, `args` is empty and `conclusion = exprType`).
     -/
     let (args, _, bodyType) ← Lean.Meta.forallMetaTelescopeReducing exprType
-    if !(← Lean.Meta.isDefEq goalType bodyType) then
+    if !(← MyMetaM.isDefEq goalType bodyType) then
       let msg := m!"{e} is not applicable to goal with type {goalType}"
       Lean.Meta.throwTacticEx `myApply goal msg
     /-
     At this point we know the goal can be satisfied by applying the expression
     `e` to the metavariable arguments from the telescope.
     -/
-    goal.assign (Lean.mkAppN e args)
+    MyMetaM.assign goal (MyExpr.appN e args)
     /-
     Some of the args may already be assigned via unification. Return the
     unassigned ones as new goals.
