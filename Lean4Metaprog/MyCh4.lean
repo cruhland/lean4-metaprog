@@ -351,4 +351,43 @@ elab "someProp" : term => somePropExpr (M := Lean.MetaM) (E := Lean.Expr)
 #check Lean.Meta.lambdaBoundedTelescope
 #check Lean.Meta.lambdaMetaTelescope
 
+def myApply
+    (goal : Lean.MVarId) (e : Lean.Expr) : Lean.MetaM (List Lean.MVarId)
+    := do
+  goal.checkNotAssigned `myApply
+  goal.withContext do
+    let goalType ← goal.getType
+    let exprType ← Lean.Meta.inferType e
+    /-
+    If `exprType` has the form `∀ (x₁ : T₁) ... (xₙ : Tₙ), U`, introduce new
+    metavariables for the `xᵢ` and obtain the conclusion `U`. (If `exprType`
+    does not have this form, `args` is empty and `conclusion = exprType`).
+    -/
+    let (args, _, bodyType) ← Lean.Meta.forallMetaTelescopeReducing exprType
+    if !(← Lean.Meta.isDefEq goalType bodyType) then
+      let msg := m!"{e} is not applicable to goal with type {goalType}"
+      Lean.Meta.throwTacticEx `myApply goal msg
+    /-
+    At this point we know the goal can be satisfied by applying the expression
+    `e` to the metavariable arguments from the telescope.
+    -/
+    goal.assign (Lean.mkAppN e args)
+    /-
+    Some of the args may already be assigned via unification. Return the
+    unassigned ones as new goals.
+    -/
+    let newGoals ← args.filterMapM λ mvarExpr => do
+      let mvarId := mvarExpr.mvarId!
+      let assigned := (← mvarId.isAssigned) || (← mvarId.isDelayedAssigned)
+      return if assigned then none else some mvarId
+    return newGoals.toList
+
+elab "myApply" e:term : tactic => do
+  let e ← Lean.Elab.Term.elabTerm e none
+  Lean.Elab.Tactic.liftMetaTactic (myApply · e)
+
+example (h : α → β) (a : α) : β := by
+  myApply h
+  myApply a
+
 end Lean4Metaprog.Ch4
