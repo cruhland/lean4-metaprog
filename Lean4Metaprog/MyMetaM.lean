@@ -144,7 +144,7 @@ class MyMetaM (M : Type → Type) extends Monad M where
   the body with them. Returns the argument metavariables and the body.
   -/
   forallMetaTelescopeReducing
-    {E : Type} [MyExpr E] (e : E) : M (Array ExprOut × ExprOut)
+    {E : Type} [MyExpr E] (e : E) : M (Array MVarIdOut × ExprOut)
 
 instance mymetam_metam_inst : MyMetaM Lean.MetaM := {
   MVarIdOut := Lean.MVarId
@@ -214,7 +214,7 @@ instance mymetam_metam_inst : MyMetaM Lean.MetaM := {
   forallMetaTelescopeReducing := λ e => do
     let expr := MyExpr.toExpr e
     let (args, _, body) ← Lean.Meta.forallMetaTelescopeReducing expr
-    return (args, body)
+    return (args.map Lean.Expr.mvarId!, body)
 }
 
 namespace MyMetaM

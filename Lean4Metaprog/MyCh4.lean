@@ -371,13 +371,12 @@ def myApply
     At this point we know the goal can be satisfied by applying the expression
     `e` to the metavariable arguments from the telescope.
     -/
-    MyMetaM.assign goal (MyExpr.appN e args)
+    MyMetaM.assign goal (MyExpr.appN e <| args.map MyExpr.mvar)
     /-
     Some of the args may already be assigned via unification. Return the
     unassigned ones as new goals.
     -/
-    let newGoals ← args.filterMapM λ mvarExpr => do
-      let mvarId := mvarExpr.mvarId!
+    let newGoals ← args.filterMapM λ mvarId => do
       let assigned := (← mvarId.isAssigned) || (← mvarId.isDelayedAssigned)
       return if assigned then none else some mvarId
     return newGoals.toList
