@@ -389,4 +389,23 @@ example (h : α → β) (a : α) : β := by
   myApply h
   myApply a
 
+/-! ## Backtracking -/
+
+#check Lean.MonadBacktrack
+#check Lean.saveState
+#check Lean.restoreState
+
+def tryM (x : Lean.MetaM Unit) : Lean.MetaM Unit := do
+  let s ← Lean.saveState
+  try
+    x
+  catch _ =>
+    Lean.restoreState s
+
+#check Lean.withoutModifyingState
+#check Lean.observing?
+#check Lean.commitIfNoEx
+#check Lean.Meta.SavedState.restore
+#check Lean.Core.SavedState.restore
+
 end Lean4Metaprog.Ch4
