@@ -446,4 +446,28 @@ def ex02Expr : Lean.Expr :=
   mvar3.mvarId!.assign oneExpr
 
   Lean.instantiateExprMVars mvar1
+
+-- Exercise 04
+elab "explore" : tactic => do
+  let mvarId ← Lean.Elab.Tactic.getMainGoal
+  let metavarDecl ← mvarId.getDecl
+
+  let showDecl (type : Lean.Expr) (userName : Lean.Name) : IO Unit := do
+    IO.println s!"  Type: ${type}"
+    IO.println s!"  User name: ${userName}"
+
+  IO.println "Exercise 04"
+  IO.println "Our metavariable"
+  showDecl metavarDecl.type metavarDecl.userName
+
+  IO.println "All of its local declarations"
+  mvarId.withContext do
+    for ldecl in ← Lean.getLCtx do
+      if ldecl.isImplementationDetail then continue
+      showDecl ldecl.type ldecl.userName
+
+theorem red (hA : 1 = 1) (hB : 2 = 2) : 2 = 2 := by
+  explore
+  sorry
+
 end Lean4Metaprog.Ch4
