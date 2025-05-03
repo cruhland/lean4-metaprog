@@ -408,4 +408,15 @@ def tryM (x : Lean.MetaM Unit) : Lean.MetaM Unit := do
 #check Lean.Meta.SavedState.restore
 #check Lean.Core.SavedState.restore
 
+/-! ## Exercises -/
+
+def ex01
+    {N : Type} {M : Type → Type} [MyName N] [MyMetaM M] (typeName : N) : M Unit
+    := do
+  let mvId ← MyMetaM.mkFreshMVar (MyExpr.const typeName : Lean.Expr)
+  MyMetaM.assign mvId (MyExpr.natLit 3 : Lean.Expr)
+
+#eval (ex01 ``Nat : Lean.MetaM Unit)
+#eval (ex01 ``String : Lean.MetaM Unit) -- No runtime error
+
 end Lean4Metaprog.Ch4
