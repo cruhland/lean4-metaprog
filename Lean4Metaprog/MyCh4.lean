@@ -419,4 +419,15 @@ def ex01
 #eval (ex01 ``Nat : Lean.MetaM Unit)
 #eval (ex01 ``String : Lean.MetaM Unit) -- No runtime error
 
+-- Exercise 02
+-- Answer: it should output the expression unchanged, because it contains no
+-- metavariables
+-- Confirmation:
+
+def ex02Expr : Lean.Expr :=
+  Lean.mkAppN (.const ``Nat.add []) #[Lean.mkNatLit 1, Lean.mkNatLit 2]
+#eval (Lean.instantiateMVars ex02Expr : Lean.MetaM Lean.Expr)
+-- I was basically correct, but the full expression has a lot more details than
+-- I mentioned. There were no metavariables though!
+
 end Lean4Metaprog.Ch4
