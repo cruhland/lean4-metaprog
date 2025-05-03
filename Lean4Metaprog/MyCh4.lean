@@ -430,4 +430,20 @@ def ex02Expr : Lean.Expr :=
 -- I was basically correct, but the full expression has a lot more details than
 -- I mentioned. There were no metavariables though!
 
+-- Exercise 03
+#eval show Lean.MetaM Lean.Expr from do
+  let oneExpr := Lean.Expr.app (.const ``Nat.succ []) (.const ``Nat.zero [])
+  let twoExpr := Lean.Expr.app (.const ``Nat.succ []) oneExpr
+
+  let mvar1 ← Lean.Meta.mkFreshExprMVar (Lean.Expr.const ``Nat [])
+  let mvar2 ← Lean.Meta.mkFreshExprMVar (Lean.Expr.const ``Nat [])
+  let mvar3 ← Lean.Meta.mkFreshExprMVar (Lean.Expr.const ``Nat [])
+
+  let natAdd := Lean.Expr.const ``Nat.add []
+  let innerSum := Lean.mkAppN natAdd #[twoExpr, mvar2]
+  let outerSum := Lean.mkAppN natAdd #[innerSum, mvar3]
+  mvar1.mvarId!.assign outerSum
+  mvar3.mvarId!.assign oneExpr
+
+  Lean.instantiateExprMVars mvar1
 end Lean4Metaprog.Ch4
