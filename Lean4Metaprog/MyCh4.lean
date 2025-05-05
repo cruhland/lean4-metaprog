@@ -466,8 +466,21 @@ elab "explore" : tactic => do
       if ldecl.isImplementationDetail then continue
       showDecl ldecl.type ldecl.userName
 
+-- Exercise 05
+-- Write a tactic `solve` that proves the theorem `red`.
+elab "solve" : tactic => do
+  let goalId ← Lean.Elab.Tactic.getMainGoal
+  let goalType ← goalId.getType
+  goalId.withContext do
+    for ldecl in ← Lean.getLCtx do
+      if ldecl.isImplementationDetail then continue
+      if !(← Lean.Meta.isDefEq goalType ldecl.type) then continue
+      goalId.assign ldecl.toExpr
+      break
+
+set_option linter.unusedVariables false in
 theorem red (hA : 1 = 1) (hB : 2 = 2) : 2 = 2 := by
   explore
-  sorry
+  solve
 
 end Lean4Metaprog.Ch4
