@@ -483,4 +483,19 @@ theorem red (hA : 1 = 1) (hB : 2 = 2) : 2 = 2 := by
   explore
   solve
 
+-- Exercise 06
+-- What is the normal form of the following expressions?
+
+-- a) `fun x => x` of type `Bool → Bool`
+-- My answer: `fun x => x`
+#reduce (fun x => x : Bool → Bool)
+
+-- b) `(fun x => x) ((true && false) || true)` of type `Bool`
+-- My answer: `true`
+#reduce (fun x => x) ((true && false) || true)
+
+-- c) `800 + 2` of type `Nat`
+-- My answer: `802`
+#reduce 800 + 2
+
 end Lean4Metaprog.Ch4
