@@ -498,4 +498,10 @@ theorem red (hA : 1 = 1) (hB : 2 = 2) : 2 = 2 := by
 -- My answer: `802`
 #reduce 800 + 2
 
+-- Exercise 07
+#eval show Lean.MetaM Bool from do
+  let litOne := Lean.Expr.lit (Lean.Literal.natVal 1)
+  let conOne := Lean.Expr.app (.const ``Nat.succ []) (.const ``Nat.zero [])
+  Lean.Meta.isDefEq litOne conOne
+
 end Lean4Metaprog.Ch4
