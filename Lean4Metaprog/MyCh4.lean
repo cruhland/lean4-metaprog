@@ -557,4 +557,23 @@ def printMCtxInfo : Lean.MetaM Unit := do
   printMCtxInfo
   return isEq
 
+-- (d) `?a + Int =?= "hi" + ?b`, where `?a` and `?b` don't have a type
+-- No, there's no `+` operator that works with `String` and `Type`, so the
+-- metavariables won't be assigned, even though that could be done consistently
+-- My guess was correct, using `#eval` here gives the following error:
+-- `incorrect number of universe levels HAdd.hAdd`
+#check show Lean.MetaM Bool from do
+  let addOp := .const ``HAdd.hAdd []
+  let lhs := do
+    let mvarA ← Lean.Meta.mkFreshExprMVar none (userName := `a)
+    let intType := .const ``Int []
+    return Lean.mkAppN addOp #[mvarA, intType]
+  let rhs := do
+    let mvarB ← Lean.Meta.mkFreshExprMVar none (userName := `b)
+    let strLit := .lit (.strVal "hi")
+    return Lean.mkAppN addOp #[strLit, mvarB]
+  let isEq ← Lean.Meta.isDefEq (← lhs) (← rhs)
+  printMCtxInfo
+  return isEq
+
 end Lean4Metaprog.Ch4
