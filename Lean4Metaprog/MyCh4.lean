@@ -512,7 +512,7 @@ def printMCtxInfo : Lean.MetaM Unit := do
   IO.println s!"Metavar types: ${(mctx.decls.map (·.type)).toList.map (·.2)}"
   IO.println s!"Metavar assignments: ${mctx.eAssignment.toList.map (·.2)}"
 
--- (a) 5 =?= (fun x => 5) ((fun y : Nat → Nat => y) (fun z : Nat => z))
+-- (a) `5 =?= (fun x => 5) ((fun y : Nat → Nat => y) (fun z : Nat => z))`
 -- Yes, because the argument to `(fun x => 5)` is ignored
 #eval show Lean.MetaM Bool from do
   let natType := Lean.Expr.const ``Nat []
@@ -534,7 +534,7 @@ def printMCtxInfo : Lean.MetaM Unit := do
   printMCtxInfo
   return isEq
 
--- (b) 2 + 1 =?= 1 + 2
+-- (b) `2 + 1 =?= 1 + 2`
 -- Yes, because both sides can be fully reduced to 3
 #eval show Lean.MetaM Bool from do
   let natAdd := .const ``Nat.add []
@@ -544,6 +544,16 @@ def printMCtxInfo : Lean.MetaM Unit := do
   let rhs := Lean.mkAppN natAdd #[litOne, litTwo]
   let isEq ← Lean.Meta.isDefEq lhs rhs
   -- No metavars were created or assigned
+  printMCtxInfo
+  return isEq
+
+-- (c) `?a =?= 2`, where `?a` has type `String`
+-- No, the types are not compatible
+#eval show Lean.MetaM Bool from do
+  let stringType := Lean.Expr.const ``String []
+  let lhs ← Lean.Meta.mkFreshExprMVar stringType (userName := `a)
+  let rhs := .lit (.natVal 2)
+  let isEq ← Lean.Meta.isDefEq lhs rhs
   printMCtxInfo
   return isEq
 
