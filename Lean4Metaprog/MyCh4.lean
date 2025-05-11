@@ -534,4 +534,17 @@ def printMCtxInfo : Lean.MetaM Unit := do
   printMCtxInfo
   return isEq
 
+-- (b) 2 + 1 =?= 1 + 2
+-- Yes, because both sides can be fully reduced to 3
+#eval show Lean.MetaM Bool from do
+  let natAdd := .const ``Nat.add []
+  let litOne := .lit (.natVal 1)
+  let litTwo := .lit (.natVal 2)
+  let lhs := Lean.mkAppN natAdd #[litTwo, litOne]
+  let rhs := Lean.mkAppN natAdd #[litOne, litTwo]
+  let isEq ← Lean.Meta.isDefEq lhs rhs
+  -- No metavars were created or assigned
+  printMCtxInfo
+  return isEq
+
 end Lean4Metaprog.Ch4
