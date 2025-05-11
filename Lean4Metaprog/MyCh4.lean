@@ -504,4 +504,34 @@ theorem red (hA : 1 = 1) (hB : 2 = 2) : 2 = 2 := by
   let conOne := Lean.Expr.app (.const ``Nat.succ []) (.const ``Nat.zero [])
   Lean.Meta.isDefEq litOne conOne
 
+-- Exercise 08
+def printMCtxInfo : Lean.MetaM Unit := do
+  let mctx ← Lean.getMCtx
+  IO.println s!"Metavar context counter: ${mctx.mvarCounter}"
+  IO.println s!"Metavars declared: ${mctx.decls.foldl (λ c _ _ => c + 1) 0}"
+  IO.println s!"Metavar types: ${(mctx.decls.map (·.type)).toList.map (·.2)}"
+  IO.println s!"Metavar assignments: ${mctx.eAssignment.toList.map (·.2)}"
+
+-- (a) 5 =?= (fun x => 5) ((fun y : Nat → Nat => y) (fun z : Nat => z))
+-- Yes, because the argument to `(fun x => 5)` is ignored
+#eval show Lean.MetaM Bool from do
+  let natType := Lean.Expr.const ``Nat []
+  let lhs := Lean.Expr.lit (Lean.Literal.natVal 5)
+  let fnX ← do
+    let xTypeExpr ← Lean.Meta.mkFreshExprMVar none
+    Lean.Meta.withLocalDecl `x .default xTypeExpr λ x =>
+      Lean.Meta.mkLambdaFVars #[x] (.lit (.natVal 5))
+  let fnY ← do
+    let yTypeExpr ← Lean.mkArrow natType natType
+    Lean.Meta.withLocalDecl `y .default yTypeExpr λ y =>
+      Lean.Meta.mkLambdaFVars #[y] y
+  let fnZ ← do
+    Lean.Meta.withLocalDecl `z .default natType λ z =>
+      Lean.Meta.mkLambdaFVars #[z] z
+  let rhs := Lean.Expr.app fnX (.app fnY fnZ)
+  let isEq ← Lean.Meta.isDefEq lhs rhs
+  -- It appears no metavariables were assigned
+  printMCtxInfo
+  return isEq
+
 end Lean4Metaprog.Ch4
