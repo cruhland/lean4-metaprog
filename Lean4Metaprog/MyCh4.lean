@@ -576,4 +576,14 @@ def printMCtxInfo : Lean.MetaM Unit := do
   printMCtxInfo
   return isEq
 
+-- (e) `2 + ?a =?= 3`
+-- No, because Lean can't unify expressions that don't have the same structure?
+#eval show Lean.MetaM Bool from do
+  let mvarA ← Lean.Meta.mkFreshExprMVar none (userName := `a)
+  let lhs := Lean.mkAppN (.const ``Nat.add []) #[.lit (.natVal 2), mvarA]
+  let rhs := .lit (.natVal 3)
+  let isEq ← Lean.Meta.isDefEq lhs rhs
+  printMCtxInfo
+  return isEq
+
 end Lean4Metaprog.Ch4
