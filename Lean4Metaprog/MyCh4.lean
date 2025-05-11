@@ -507,8 +507,7 @@ theorem red (hA : 1 = 1) (hB : 2 = 2) : 2 = 2 := by
 -- Exercise 08
 def printMCtxInfo : Lean.MetaM Unit := do
   let mctx ← Lean.getMCtx
-  IO.println s!"Metavar context counter: ${mctx.mvarCounter}"
-  IO.println s!"Metavars declared: ${mctx.decls.foldl (λ c _ _ => c + 1) 0}"
+  IO.println s!"Metavar counter: ${mctx.mvarCounter}"
   IO.println s!"Metavar types: ${(mctx.decls.map (·.type)).toList.map (·.2)}"
   IO.println s!"Metavar assignments: ${mctx.eAssignment.toList.map (·.2)}"
 
@@ -582,6 +581,17 @@ def printMCtxInfo : Lean.MetaM Unit := do
   let mvarA ← Lean.Meta.mkFreshExprMVar none (userName := `a)
   let lhs := Lean.mkAppN (.const ``Nat.add []) #[.lit (.natVal 2), mvarA]
   let rhs := .lit (.natVal 3)
+  let isEq ← Lean.Meta.isDefEq lhs rhs
+  printMCtxInfo
+  return isEq
+
+-- (f) `2 + ?a =?= 2 + 1`
+-- Yes, because the expressions have the same structure and the right types
+#eval show Lean.MetaM Bool from do
+  let natAdd := .const ``Nat.add []
+  let mvarA ← Lean.Meta.mkFreshExprMVar none (userName := `a)
+  let lhs := Lean.mkAppN natAdd #[.lit (.natVal 2), mvarA]
+  let rhs := Lean.mkAppN natAdd #[.lit (.natVal 2), .lit (.natVal 1)]
   let isEq ← Lean.Meta.isDefEq lhs rhs
   printMCtxInfo
   return isEq
