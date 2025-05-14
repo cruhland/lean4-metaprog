@@ -596,4 +596,45 @@ def printMCtxInfo : Lean.MetaM Unit := do
   printMCtxInfo
   return isEq
 
+-- Exercise 09
+-- Write down what you expect the following code to output
+-- reducible: [1, instanceDef, defaultDef, irreducibleDef]
+-- instances: [1, 2, defaultDef, irreducibleDef]
+-- default: [1, 2, 3, irreducibleDef]
+-- all: [1, 2, 3, 4]
+-- normal: [1, 2, 3, irreducibleDef]
+namespace ex_09
+open Lean
+open Lean.Meta
+
+@[reducible] def reducibleDef     : Nat := 1 -- same as `abbrev`
+@[instance] def instanceDef       : Nat := 2 -- same as `instance`
+def defaultDef                    : Nat := 3
+@[irreducible] def irreducibleDef : Nat := 4
+
+@[reducible] def sum := [reducibleDef, instanceDef, defaultDef, irreducibleDef]
+
+#eval show MetaM Unit from do
+  let constantExpr := Expr.const ``sum []
+
+  Meta.withTransparency Meta.TransparencyMode.reducible do
+    let reducedExpr ← Meta.reduce constantExpr
+    dbg_trace (← ppExpr reducedExpr)
+
+  Meta.withTransparency Meta.TransparencyMode.instances do
+    let reducedExpr ← Meta.reduce constantExpr
+    dbg_trace (← ppExpr reducedExpr)
+
+  Meta.withTransparency Meta.TransparencyMode.default do
+    let reducedExpr ← Meta.reduce constantExpr
+    dbg_trace (← ppExpr reducedExpr)
+
+  Meta.withTransparency Meta.TransparencyMode.all do
+    let reducedExpr ← Meta.reduce constantExpr
+    dbg_trace (← ppExpr reducedExpr)
+
+  let reducedExpr ← Meta.reduce constantExpr
+  dbg_trace (← ppExpr reducedExpr)
+end ex_09
+
 end Lean4Metaprog.Ch4
