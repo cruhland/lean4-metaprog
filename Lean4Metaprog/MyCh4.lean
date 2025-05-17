@@ -637,4 +637,22 @@ def defaultDef                    : Nat := 3
   dbg_trace (← ppExpr reducedExpr)
 end ex_09
 
+-- Exercise 10
+def ex10a : Lean.Expr :=
+  let body := Lean.mkAppN (.const ``Nat.add []) #[.lit (.natVal 1), .bvar 0]
+  .lam `x (.const ``Nat []) body .default
+
+#eval ex10a
+elab "ex10a_term" : term => return ex10a
+#check ex10a_term
+
+def ex10b : Lean.MetaM Lean.Expr :=
+  Lean.Meta.withLocalDecl `x .default (.const ``Nat []) λ x => do
+    let body ← Lean.Meta.mkAppM ``Nat.add #[.lit (.natVal 1), x]
+    Lean.Meta.mkLambdaFVars #[x] body
+
+#eval ex10b
+elab "ex10b_term" : term => ex10b
+#check ex10b_term
+
 end Lean4Metaprog.Ch4
