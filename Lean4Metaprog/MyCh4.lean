@@ -655,4 +655,22 @@ def ex10b : Lean.MetaM Lean.Expr :=
 elab "ex10b_term" : term => ex10b
 #check ex10b_term
 
+-- Exercise 11
+def ex11a : Lean.MetaM Lean.Expr :=
+  Lean.Meta.withLocalDecl `yellow .default (.const ``Nat []) λ yellow =>
+    Lean.Meta.mkForallFVars #[yellow] yellow
+
+-- This is literally what was asked for, but it doesn't typecheck
+#eval ex11a
+
+def ex11b : Lean.MetaM Lean.Expr :=
+  Lean.Meta.withLocalDecl `yellow .default (.const ``Nat []) λ yellow => do
+    let eq ← Lean.Meta.mkEq yellow yellow
+    Lean.Meta.mkForallFVars #[yellow] eq
+
+-- This is type correct
+#eval ex11b
+elab "ex11b_term" : term => ex11b
+#check ex11b_term
+
 end Lean4Metaprog.Ch4
