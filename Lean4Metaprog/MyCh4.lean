@@ -710,4 +710,26 @@ def ex13 : Lean.MetaM Lean.Expr := do
 elab "ex13_term" : term => ex13
 #check ex13_term
 
+-- Exercise 14
+-- Write down what you expect to be output
+-- forallMetaTelescope: ?a ∨ ?b → ?b → ?a ∧ ?a
+--   (oops, forgot that regular arrows count!)
+-- forallMetaBoundedTelescope: ?a ∨ ?b → ?b → ?a ∧ ?a
+-- lambdaMetaTelescope: ∀ (a : Prop) (b : Prop), a ∨ b → b → a ∧ a
+#eval show Lean.Elab.Term.TermElabM _ from do
+  let stx : Lean.Syntax ← `(∀ (a : Prop) (b : Prop), a ∨ b → b → a ∧ a)
+  let expr ← Lean.Elab.Term.elabTermAndSynthesize stx none
+
+  let (_, _, conclusion) ← Lean.Meta.forallMetaTelescope expr
+  dbg_trace "forallMetaTelescope: "
+  dbg_trace conclusion
+
+  let (_, _, conclusion) ← Lean.Meta.forallMetaBoundedTelescope expr 2
+  dbg_trace "forallMetaBoundedTelescope: "
+  dbg_trace conclusion
+
+  let (_, _, conclusion) ← Lean.Meta.lambdaMetaTelescope expr
+  dbg_trace "lambdaMetaTelescope: "
+  dbg_trace conclusion
+
 end Lean4Metaprog.Ch4
