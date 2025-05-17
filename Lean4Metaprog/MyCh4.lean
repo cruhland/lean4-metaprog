@@ -395,12 +395,13 @@ example (h : α → β) (a : α) : β := by
 #check Lean.saveState
 #check Lean.restoreState
 
-def tryM (x : Lean.MetaM Unit) : Lean.MetaM Unit := do
+def tryM {α : Type} (x : Lean.MetaM α) : Lean.MetaM (Option α) := do
   let s ← Lean.saveState
   try
     x
   catch _ =>
     Lean.restoreState s
+    return none
 
 #check Lean.withoutModifyingState
 #check Lean.observing?
@@ -731,5 +732,18 @@ elab "ex13_term" : term => ex13
   let (_, _, conclusion) ← Lean.Meta.lambdaMetaTelescope expr
   dbg_trace "lambdaMetaTelescope: "
   dbg_trace conclusion
+
+-- Exercise 15
+#eval show Lean.MetaM (Option Bool) from tryM do
+  let addOp := .const ``HAdd.hAdd []
+  let lhs := do
+    let mvarA ← Lean.Meta.mkFreshExprMVar none (userName := `a)
+    let intType := .const ``Int []
+    return Lean.mkAppN addOp #[mvarA, intType]
+  let rhs := do
+    let mvarB ← Lean.Meta.mkFreshExprMVar none (userName := `b)
+    let strLit := .lit (.strVal "hi")
+    return Lean.mkAppN addOp #[strLit, mvarB]
+  Lean.Meta.isDefEq (← lhs) (← rhs)
 
 end Lean4Metaprog.Ch4
