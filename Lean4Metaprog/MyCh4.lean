@@ -693,4 +693,21 @@ def ex12b : Lean.MetaM Lean.Expr :=
 elab "ex12b_term" : term => ex12b
 #check ex12b_term
 
+-- Exercise 13
+def ex13 : Lean.MetaM Lean.Expr := do
+  let natTy := Lean.Expr.const ``Nat []
+  let natFn ← Lean.mkArrow natTy natTy
+  Lean.Meta.withLocalDecl `f .default natFn λ f =>
+    Lean.Meta.withLocalDecl `n .default natTy λ n => do
+      let sum ← Lean.Meta.mkAppM ``Nat.add #[n, .lit (.natVal 1)]
+      let lhs := .app f n
+      let rhs := .app f sum
+      let eq ← Lean.Meta.mkEq lhs rhs
+      let prop ← Lean.Meta.mkForallFVars #[n] eq
+      Lean.Meta.mkLambdaFVars #[f] prop
+
+#eval ex13
+elab "ex13_term" : term => ex13
+#check ex13_term
+
 end Lean4Metaprog.Ch4
