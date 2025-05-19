@@ -2,5 +2,3 @@
 -- Import modules here that should be built as part of the library.
 import Lean4Metaprog.Ch3
 import Lean4Metaprog.Ch4
-import Lean4Metaprog.MyCh3
-import Lean4Metaprog.MyCh4

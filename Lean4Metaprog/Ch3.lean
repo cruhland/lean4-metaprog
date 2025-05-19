@@ -1,8 +1,11 @@
-import Lean
+import Lean4Metaprog.MyExpr
 
 namespace Lean4Metaprog.Ch3
 
-/-! # Chapter 3: Expressions -/
+open Lean
+open MyExpr (app appN bvar const constL forallE lam natLit sort strLit)
+
+/-! # Chapter 3: Expressions - using My* definitions -/
 
 /-! ## Universe levels -/
 
@@ -11,59 +14,59 @@ set_option pp.universes true in
 
 /-! ## Constructing expressions -/
 
-open Lean
+variable {E : Type} [MyExpr E]
 
-def z' := Expr.const `Nat.zero []
+/-! ### Constants -/
+
+def z' : Expr := MyExpr.const `Nat.zero
 #eval z'
 
-def z := Expr.const ``Nat.zero []
+def zE : E := MyExpr.const ``Nat.zero
+def z : Expr := zE
 #eval z
 
 section resolve
 
-open Nat
-
-def z₁ := Expr.const `zero []
+def z₁ : Expr := MyExpr.const `zero
 #eval z₁
 
--- Without `open Nat`, gives error "unknown constant 'zero'"
-def z₂ := Expr.const ``zero []
-#eval z₂
+-- Comment this out and observe that ``zero has an error
+open Nat
 
--- Shorter way to create constants
-def z₃ := mkConst ``zero
-#eval z₃
+def z₂ : Expr := MyExpr.const ``zero
+#eval z₂
 
 end resolve
 
-def one := Expr.app (mkConst ``Nat.succ) z
+/-! ### Function applications -/
+
+def oneE : E := MyExpr.app (const ``Nat.succ) zE
+def one : Expr := oneE
 #eval one
 
-def natExpr : Nat → Expr
-| 0 => z
-| n + 1 => .app (mkConst ``Nat.succ) (natExpr n)
-#eval natExpr 3
+def natExpr {ℕ : Type} [MyNat ℕ] : ℕ → E :=
+  MyNat.elim (elimZero := zE) (elimStep := app (const ``Nat.succ))
 
-def sumExpr : Nat → Nat → Expr
-| n, m => mkAppN (mkConst ``Nat.add) #[natExpr n, natExpr m]
-#eval sumExpr 2 3
+def sumExpr {ℕ : Type} [MyNat ℕ] (n m : ℕ) : E :=
+  appN (const ``Nat.add) #[natExpr n, natExpr m]
 
-def constZero : Expr :=
-  .lam `x (mkConst ``Nat) (mkConst ``Nat.zero) BinderInfo.default
+/-! ### Lambda abstractions -/
+
+def constZeroE : E := lam `x (const ``Nat) (const ``Nat.zero)
+def constZero : Expr := constZeroE
 #eval constZero
 
-def nat : Expr := mkConst ``Nat
+def natE : E := const ``Nat
+def ℓ₀ : Level := MyLevel.zero
 
-def addOne : Expr :=
-  .lam `x nat
-    (mkAppN (mkConst ``Nat.add) #[.bvar 0, mkNatLit 1])
-    BinderInfo.default
+def addOneE : E := lam `x natE (appN (const ``Nat.add) #[bvar 0, natLit 1])
 
-def mapAddOneNil : Expr :=
-  mkAppN (.const ``List.map [levelZero, levelZero])
-    #[nat, nat, addOne, .app (.const ``List.nil [levelZero]) nat]
+def mapAddOneNilE : E :=
+  let listMapE := constL ``List.map [ℓ₀, ℓ₀]
+  let nilE := constL ``List.nil [ℓ₀]
+  appN listMapE #[natE, natE, addOneE, app nilE natE]
 
-elab "mapAddOneNil" : term => return mapAddOneNil
+elab "mapAddOneNil" : term => return mapAddOneNilE
 
 #check mapAddOneNil
 
@@ -75,75 +78,61 @@ set_option pp.explicit true in
 
 /-! ## Exercises -/
 
-def addConst : Expr := mkConst ``Nat.add
+def addE : E := const ``Nat.add
 
-def ex_01 : Expr := .app (.app addConst (mkNatLit 1)) (mkNatLit 2)
-#eval ex_01
+def ex_01 : E := app (app addE (natLit 1)) (natLit 2)
+#eval (ex_01 : Expr)
+elab "ex_01_term" : term => return ex_01
+#check ex_01_term
 
-def mkAdd (e₁ e₂ : Expr) : Expr := mkAppN addConst #[e₁, e₂]
+def ex_02 : E := appN addE #[natLit 1, natLit 2]
+#eval (ex_02 : Expr)
+elab "ex_02_term" : term => return ex_02
+#check ex_02_term
 
-def ex_02 : Expr := mkAdd (mkNatLit 1) (mkNatLit 2)
-#eval ex_02
+def ex_03 : E := lam `x natE (appN addE #[natLit 1, bvar 0])
+#eval (ex_03 : Expr)
+elab "ex_03_term" : term => return ex_03
+#check ex_03_term
 
-def mkLam (binderName : Name) (binderType body : Expr) : Expr :=
-  .lam binderName binderType body .default
+def ex_04 : E :=
+  let a := bvar 2; let b := bvar 1; let c := bvar 0
+  let body := appN addE #[appN (const ``Nat.mul) #[b, a], c]
+  lam `a natE (lam `b natE (lam `c natE body))
+#eval (ex_04 : Expr)
+elab "ex_04_term" : term => return ex_04
+#check ex_04_term
 
-def ex_03 : Expr := mkLam `x nat (mkAdd (mkNatLit 1) (.bvar 0))
-#eval ex_03
+def ex_05 : E := lam `x natE (lam `y natE (appN addE #[bvar 1, bvar 0]))
+#eval (ex_05 : Expr)
+elab "ex_05_term" : term => return ex_05
+#check ex_05_term
 
-def mulConst : Expr := mkConst ``Nat.mul
-def mkMul (e₁ e₂ : Expr) : Expr := mkAppN mulConst #[e₁, e₂]
+def ex_06 : E :=
+  let body := appN (const ``String.append) #[strLit "hello, ", bvar 0]
+  lam `x (const ``String) body
+#eval (ex_06 : Expr)
+elab "ex_06_term" : term => return ex_06
+#check ex_06_term
 
-def ex_04 : Expr :=
-  mkLam `a nat
-    (mkLam `b nat
-      (mkLam `c nat
-        (mkAdd (mkMul (.bvar 1) (.bvar 2)) (.bvar 0))))
-#eval ex_04
+def ex_07 : E := forallE `x (sort ℓ₀) (appN (const ``And) #[bvar 0, bvar 0])
+#eval (ex_07 : Expr)
+elab "ex_07_term" : term => return ex_07
+#check ex_07_term
 
-def ex_05 : Expr := mkLam `x nat (mkLam `y nat (mkAdd (.bvar 1) (.bvar 0)))
-#eval ex_05
+def ex_08 : E := forallE `n natE (const ``String)
+#eval (ex_08 : Expr)
+elab "ex_08_term" : term => return ex_08
+#check ex_08_term
 
-elab "ex_05" : term => return ex_05
-#check ex_05
+def ex_09 : E := lam `p (sort ℓ₀) (lam `hP (bvar 0) (bvar 0))
+#eval (ex_09 : Expr)
+elab "ex_09_term" : term => return ex_09
+#check ex_09_term
 
-def mkString : Expr := mkConst ``String
-def appendConst : Expr := mkConst ``String.append
-def mkAppend (e₁ e₂ : Expr) : Expr := .app (.app appendConst e₁) e₂
-
-def ex_06 : Expr := mkLam `x mkString (mkAppend (mkStrLit "hello, ") (.bvar 0))
-#eval ex_06
-
-elab "ex_06" : term => return ex_06
-#check ex_06
-
-def prop : Expr := .sort .zero
-def andConst : Expr := mkConst ``And
-def mkForall (binderName : Name) (binderType : Expr) (body : Expr) : Expr :=
-  .forallE binderName binderType body .default
-
-def ex_07 : Expr := mkForall `x prop (.app (.app andConst (.bvar 0)) (.bvar 0))
-#eval ex_07
-
-elab "ex_07" : term => return ex_07
-#check ex_07
-
-def ex_08 : Expr := mkForall `d nat mkString
-#eval ex_08
-
-elab "ex_08" : term => return ex_08
-#check ex_08
-
-def ex_09 : Expr := mkLam `p prop (mkLam `hP (.bvar 0) (.bvar 0))
-#eval ex_09
-
-elab "ex_09" : term => return ex_09
-#check ex_09
-
-def ex_10 : Expr := .sort (.ofNat 7)
-#eval ex_10
-
-elab "ex_10" : term => return ex_10
-#check ex_10
+def ex_10 : E := sort (7 : Level)
+#eval (ex_10 : Expr)
+elab "ex_10_term" : term => return ex_10
+#check ex_10_term
 
 end Lean4Metaprog.Ch3
