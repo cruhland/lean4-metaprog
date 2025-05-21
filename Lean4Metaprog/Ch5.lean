@@ -28,4 +28,17 @@ notation:10 l:10 " LXOR " r:11 => (!l && r)
 #eval (true ⊕ false) LXOR false -- false
 #eval true ⊕ (false LXOR false) -- true
 
+-- Make a right associative RXOR using `notation`
+notation:10 l:11 " RXOR " r:10 => (l && !r)
+
+#eval true RXOR false RXOR true -- true
+#eval (true RXOR false) RXOR true -- false
+#eval true RXOR (false RXOR true) -- true
+
+notation:65 lhs:65 " ~ " rhs:65 => (lhs - rhs)
+#eval 5 ~ 3 ~ 3 -- 5 because this is parsed as 5 - (3 - 3)
+
+notation:65 a:65 " ~ " b:65 " mod " rel:65 => rel a b
+#check 0 ~ 0 mod Eq -- 0 = 0 : Prop
+
 end Lean4Metaprog.Ch5
