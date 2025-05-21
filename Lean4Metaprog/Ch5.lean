@@ -41,4 +41,32 @@ notation:65 lhs:65 " ~ " rhs:65 => (lhs - rhs)
 notation:65 a:65 " ~ " b:65 " mod " rel:65 => rel a b
 #check 0 ~ 0 mod Eq -- 0 = 0 : Prop
 
+/-! ### Free form syntax declarations -/
+
+syntax "MyTerm" : term
+#check_failure MyTerm
+
+namespace BoolExpr
+
+-- Use `scoped` to keep these inside this namespace
+scoped syntax "⊥" : term
+scoped syntax "⊤" : term
+scoped syntax:40 term " OR " term : term
+scoped syntax:50 term " AND " term : term
+#check_failure ⊥ OR (⊤ AND ⊥) -- parsing passes, but no elab fn
+
+end BoolExpr
+
+declare_syntax_cat boolean_expr
+syntax "⊥" : boolean_expr
+syntax "⊤" : boolean_expr
+syntax:40 boolean_expr " OR " boolean_expr : boolean_expr
+syntax:50 boolean_expr " AND " boolean_expr : boolean_expr
+
+-- gives "expected term" error
+-- #check ⊥ AND ⊤
+
+syntax "[Bool|" boolean_expr "]" : term
+#check_failure [Bool| ⊥ AND ⊤ ]
+
 end Lean4Metaprog.Ch5
