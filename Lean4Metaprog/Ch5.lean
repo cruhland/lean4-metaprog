@@ -205,4 +205,16 @@ example (X : Set α) : Set.empty ⊆ X := by
   have : False := this
   exact False.elim this
 
+/-! ### Binders -/
+
+-- Using this ensures the syntax is interpreted as `Set α` and not `α → Prop`
+def setOf {α : Type} (p : α → Prop) : Set α := p
+
+notation "{ " x " | " p " }" => setOf (λ x => p)
+
+#check { x | x ≤ 1 } -- { x | x ≤ 1 } : Set Nat
+
+example : 1 ∈ { y | y ≤ 1 } := by simp [Membership.mem, Set.mem, setOf]
+example : 2 ∈ { y | 1 ≤ y ∧ y ≤ 3 } := by simp [Membership.mem, Set.mem, setOf]
+
 end Lean4Metaprog.Ch5
