@@ -237,4 +237,15 @@ scoped syntax:80 term:81 " ∸ " term:80 : term
 -- Need `macro_rules` to map the syntax to a term, which hasn't been covered yet
 end ex_1c
 
+-- Exercise 2
+syntax "good" "morning" : term
+syntax "hello" : command
+syntax "yellow" : tactic
+
+#check_failure good morning -- parses, but no elab
+/-
+hello -- parses, but no elab
+example : Nat := by yellow -- parses, but no elab
+-/
+
 end Lean4Metaprog.Ch5
