@@ -248,4 +248,14 @@ hello -- parses, but no elab
 example : Nat := by yellow -- parses, but no elab
 -/
 
+-- Exercise 3
+syntax (name := colors) ("red"+ <|> "blue"+) num : command
+@[command_elab colors] def elabColors : Lean.Elab.Command.CommandElab :=
+  λ _ => Lean.logInfo "success!"
+
+red red red 4
+blue 7
+blue blue blue blue blue 18
+-- red blue blue 5 -- confirmed this doesn't work
+
 end Lean4Metaprog.Ch5
