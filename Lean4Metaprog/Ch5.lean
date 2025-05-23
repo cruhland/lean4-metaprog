@@ -112,4 +112,21 @@ def oneLit := Syntax.mkNumLit "1"
 #eval Syntax.mkApp (mkIdent `Nat.add) #[oneLit, oneLit]
 #eval mkNode `«term_+_» #[oneLit, mkAtom "+", oneLit]
 
+/-! ### Matching on syntax -/
+
+def isAdd11 : Syntax → Bool
+| `(Nat.add 1 1) => true
+| _ => false
+
+#eval isAdd11 (Syntax.mkApp (mkIdent `Nat.add) #[oneLit, oneLit]) -- true
+#eval isAdd11 (Syntax.mkApp (mkIdent `Nat.add) #[mkIdent `foo, oneLit]) -- false
+
+def isAdd : Syntax → Option (Syntax × Syntax)
+| `(Nat.add $x $y) => some (x, y)
+| _ => none
+
+#eval isAdd (Syntax.mkApp (mkIdent `Nat.add) #[oneLit, oneLit]) -- some
+#eval isAdd (Syntax.mkApp (mkIdent `Nat.add) #[mkIdent `foo, oneLit]) -- some
+#eval isAdd (Syntax.mkApp (mkIdent `Nat.add) #[mkIdent `foo]) -- none
+
 end Lean4Metaprog.Ch5
