@@ -95,4 +95,21 @@ syntax "binDoc(" (str ";")? binNumber ")" : term
 #check_failure binDoc(Z, O, Z, Z, O) -- no elab, valid parse
 #check_failure binDoc("mycomment"; Z, O, Z, Z, O) -- no elab, valid parse
 
+/-! ## Operating on syntax -/
+
+/-! ### Constructing new syntax -/
+
+open Lean
+#check Syntax
+#check Syntax.mkApp
+#check Lean.Parser.Term.app
+#check mkNode
+#check mkIdent
+#check Syntax.mkNumLit
+#check mkAtom
+
+def oneLit := Syntax.mkNumLit "1"
+#eval Syntax.mkApp (mkIdent `Nat.add) #[oneLit, oneLit]
+#eval mkNode `«term_+_» #[oneLit, mkAtom "+", oneLit]
+
 end Lean4Metaprog.Ch5
