@@ -176,4 +176,33 @@ def test : Elab.TermElabM Nat := do
 
 #eval test -- 11
 
+/-! ## More elaborate examples -/
+
+/-! ### Using type classes for notations -/
+
+class Subset (α : Type u) where
+  subset : α → α → Prop
+
+infix:50 " ⊆ " => Subset.subset
+
+def Set (α : Type u) := α → Prop
+
+def Set.mem (X : Set α) (x : α) : Prop := X x
+
+instance : Membership α (Set α) where
+  mem := Set.mem
+
+def Set.empty : Set α := λ _ => False
+
+instance : Subset (Set α) where
+  subset X Y := (x : α) → x ∈ X → x ∈ Y
+
+example (X : Set α) : Set.empty ⊆ X := by
+  show (x : α) → x ∈ Set.empty → x ∈ X
+  intro (x : α) (h : x ∈ Set.empty)
+  show x ∈ X
+  have : Set.empty x := h
+  have : False := this
+  exact False.elim this
+
 end Lean4Metaprog.Ch5
