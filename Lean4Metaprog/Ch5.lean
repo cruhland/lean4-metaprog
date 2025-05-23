@@ -217,4 +217,24 @@ notation "{ " x " | " p " }" => setOf (λ x => p)
 example : 1 ∈ { y | y ≤ 1 } := by simp [Membership.mem, Set.mem, setOf]
 example : 2 ∈ { y | 1 ≤ y ∧ y ≤ 3 } := by simp [Membership.mem, Set.mem, setOf]
 
+/-! ## Exercises -/
+
+-- Exercise 1
+namespace ex_1a
+scoped notation:80 lhs:81 " ∸ " rhs:80 => lhs - rhs
+#eval 5 * 8 ∸ 4
+#eval 8 ∸ 6 ∸ 1
+end ex_1a
+
+namespace ex_1b
+scoped infixr:80 " ∸ " => (· - ·)
+#eval 5 * 8 ∸ 4
+#eval 8 ∸ 6 ∸ 1
+end ex_1b
+
+namespace ex_1c
+scoped syntax:80 term:81 " ∸ " term:80 : term
+-- Need `macro_rules` to map the syntax to a term, which hasn't been covered yet
+end ex_1c
+
 end Lean4Metaprog.Ch5
