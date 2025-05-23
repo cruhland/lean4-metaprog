@@ -152,4 +152,28 @@ def boolExpr := mkNode ``boolean_expr_AND_ boolExprParts
 #eval isBoolExpr boolExpr -- true
 #eval `(boolean_expr|⊥ AND ⊤)
 
+/-! ### Mini project -/
+
+declare_syntax_cat arith
+
+syntax num : arith
+syntax arith "-" arith : arith
+syntax arith "+" arith : arith
+syntax "(" arith ")" : arith
+
+-- The `partial` appears to be needed because Lean can't prove termination
+partial def denoteArith : TSyntax `arith → Nat
+| `(arith| $x:num ) => x.getNat
+| `(arith| $x:arith + $y:arith ) => denoteArith x + denoteArith y
+| `(arith| $x:arith - $y:arith ) => denoteArith x - denoteArith y
+| `(arith| ($x:arith) ) => denoteArith x
+| _ => 0
+
+-- Use `TermElabM` to allow construction of `Syntax` with ``(...)` notation
+def test : Elab.TermElabM Nat := do
+  let stx ← `(arith| (12 + 3) - 4)
+  return denoteArith stx
+
+#eval test -- 11
+
 end Lean4Metaprog.Ch5
