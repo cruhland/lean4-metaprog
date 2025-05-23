@@ -129,4 +129,27 @@ def isAdd : Syntax → Option (Syntax × Syntax)
 #eval isAdd (Syntax.mkApp (mkIdent `Nat.add) #[mkIdent `foo, oneLit]) -- some
 #eval isAdd (Syntax.mkApp (mkIdent `Nat.add) #[mkIdent `foo]) -- none
 
+/-! ### Typed syntax -/
+
+def isLitAdd : TSyntax `term → Option Nat
+| `(Nat.add $x:num $y:num) => some (x.getNat + y.getNat)
+| _ => none
+
+#eval isLitAdd (Syntax.mkApp (mkIdent `Nat.add) #[oneLit, oneLit]) -- some 2
+#eval isLitAdd (Syntax.mkApp (mkIdent `Nat.add) #[mkIdent `foo, oneLit]) -- none
+
+def isBoolExpr : Syntax → Bool
+| `(boolean_expr|⊥ AND ⊤) => true
+| _ => false
+
+-- It works!
+def boolExprParts : Array Syntax :=
+  #[mkNode ``«boolean_expr⊥» #[mkAtom "⊥"],
+    mkAtom "AND",
+    mkNode ``«boolean_expr⊤» #[mkAtom "⊤"]]
+def boolExpr := mkNode ``boolean_expr_AND_ boolExprParts
+#eval boolExpr
+#eval isBoolExpr boolExpr -- true
+#eval `(boolean_expr|⊥ AND ⊤)
+
 end Lean4Metaprog.Ch5
