@@ -258,4 +258,13 @@ blue 7
 blue blue blue blue blue 18
 -- red blue blue 5 -- confirmed this doesn't work
 
+-- Exercise 4
+syntax (name := help) "#better_help" "option" (ident)? : command
+@[command_elab help] def elabHelp : Lean.Elab.Command.CommandElab :=
+  λ _ => Lean.logInfo "success!"
+
+#better_help option
+#better_help option pp.r
+#better_help option some.other.name
+
 end Lean4Metaprog.Ch5
