@@ -267,4 +267,14 @@ syntax (name := help) "#better_help" "option" (ident)? : command
 #better_help option pp.r
 #better_help option some.other.name
 
+-- Exercise 5
+syntax extBinder := binderIdent ((" : " term) <|> binderPred)?
+syntax (name := bigsumin) "∑" extBinder " in " " { " term,+ " }, " term : term
+
+@[term_elab bigsumin] def elabSum : Lean.Elab.Term.TermElab :=
+  λ _ _ => return mkNatLit 123
+
+#check ∑ x in { 1, 2, 3 }, x^2
+#check ∑ x in { "apple", "banana", "cherry" }, x.length
+
 end Lean4Metaprog.Ch5
