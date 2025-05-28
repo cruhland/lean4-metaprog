@@ -36,4 +36,18 @@ def foo := true
  -- false, handled by old macro: `foo` and `true` are not the same syntax
 #eval foo LXOR foo
 
+/-! ## Simplifying macro declaration -/
+
+syntax:10 term:10 " RXOR " term:11 : term
+
+macro_rules
+| `($l:term RXOR $r:term) => `($l && !$r)
+
+macro:10 l:term:10 " ⊕ " r:term:11 : term => `((!$l && $r) || ($l && !$r))
+
+#eval true ⊕ true -- false
+#eval true ⊕ false -- true
+#eval false ⊕ true -- true
+#eval false ⊕ false -- false
+
 end Lean4Metaprog.Ch6
