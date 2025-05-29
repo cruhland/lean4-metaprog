@@ -50,4 +50,32 @@ macro:10 l:term:10 " ⊕ " r:term:11 : term => `((!$l && $r) || ($l && !$r))
 #eval false ⊕ true -- true
 #eval false ⊕ false -- false
 
+/-! ## Syntax quotations -/
+
+/-! ### The basics -/
+
+/-
+instance : Coe (TSyntax `a) (TSyntax `b) where
+  coe s := ⟨s.raw⟩
+-/
+
+#check TSyntax.getNat
+
+/-! ### Advanced anti-quotations -/
+
+-- The syntax «`($(mkIdent `c))» is the same as «let x := mkIdent `c; `($x)»
+
+-- syntactically cut away the first element of a tuple if possible
+syntax "cut_tuple" "(" term ", " term,+ ")" : term
+
+macro_rules
+-- This base clause is needed because the anti-quotation `$xs,*` can only be
+-- used in a parsing context where a "repeat" parser is expected. Thus the
+-- tuples that we make on the RHS must always have an explicit first element.
+| `(cut_tuple ($x, $y)) => `(($x, $y))
+| `(cut_tuple ($_, $y, $xs,*)) => `(($y, $xs,*))
+
+#check cut_tuple (1, 2)
+#check cut_tuple (1, 2, 3)
+
 end Lean4Metaprog.Ch6
