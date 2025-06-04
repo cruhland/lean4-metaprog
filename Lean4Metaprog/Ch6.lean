@@ -78,4 +78,19 @@ macro_rules
 #check cut_tuple (1, 2)
 #check cut_tuple (1, 2, 3)
 
+syntax "mylet " ident (" : " term)? " := " term " in " term : term
+
+macro_rules
+| `(mylet $x $[: $ty]? := $val in $body) => `(let $x $[: $ty]? := $val; $body)
+
+#eval mylet x := 5 in x - 10 -- 0, because of subtraction on Nat
+#eval mylet x : Int := 5 in x - 10 -- -5, because of subtraction on Int
+
+syntax "foreach " "[" term,* "] " term : term
+
+macro_rules
+| `(foreach [ $[$x:term],* ] $func:term) => `(let f := $func; [ $[f $x],* ])
+
+#eval foreach [1,2,3,4] (Nat.add 2) -- [3, 4, 5, 6]
+
 end Lean4Metaprog.Ch6
