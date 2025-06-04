@@ -104,4 +104,29 @@ def x : Nat := 42
 -- Which `x` should be used by the compiler in place of `$e`?
 #eval (const x) 10 -- 42
 
+/-! ## `MonadQuotation` and `MonadRef` -/
+
+namespace Playground
+
+class MonadRef (m : Type → Type) where
+  getRef : m Syntax
+  withRef {α} : Syntax → m α → m α
+
+class MonadQuotation (m : Type → Type) extends MonadRef m where
+  getCurrMacroScope : m MacroScope
+  getMainModule : m Name
+  withFreshMacroScope {α : Type} : m α → m α
+
+end Playground
+
+syntax "error_position " ident : term
+
+macro_rules
+| `(error_position all) => Macro.throwError "Ahhh"
+-- The `syn%$x` pattern binds the syntax `syn` to the name `x`
+| `(error_position%$tk first) => withRef tk (Macro.throwError "Ahhh")
+
+#check_failure error_position all -- blue underline on the whole term
+#check_failure error_position first -- blue underline just on `error_position`
+
 end Lean4Metaprog.Ch6
