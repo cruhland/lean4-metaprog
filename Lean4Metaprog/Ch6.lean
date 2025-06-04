@@ -93,4 +93,15 @@ macro_rules
 
 #eval foreach [1,2,3,4] (Nat.add 2) -- [3, 4, 5, 6]
 
+/-! ## Hygiene issues and how to solve them -/
+
+-- Applying this macro produces a function that binds a new identifier x
+macro "const " e:term : term => `(fun x => $e)
+
+-- But `x` can also be defined by a user
+def x : Nat := 42
+
+-- Which `x` should be used by the compiler in place of `$e`?
+#eval (const x) 10 -- 42
+
 end Lean4Metaprog.Ch6
