@@ -129,4 +129,22 @@ macro_rules
 #check_failure error_position all -- blue underline on the whole term
 #check_failure error_position first -- blue underline just on `error_position`
 
+/-! ## Mini project -/
+
+declare_syntax_cat arith
+
+syntax num : arith
+syntax arith " - " arith : arith
+syntax arith " + " arith : arith
+syntax "(" arith ")" : arith
+syntax "#{" arith "}" : term
+
+macro_rules
+| `(#{$x:num}) => `($x)
+| `(#{$x:arith + $y:arith}) => `(#{$x} + #{$y})
+| `(#{$x:arith - $y:arith}) => `(#{$x} - #{$y})
+| `(#{($x:arith)}) => `(#{$x})
+
+#eval #{(12 + 3) - 4} -- 11
+
 end Lean4Metaprog.Ch6
