@@ -131,20 +131,64 @@ macro_rules
 
 /-! ## Mini project -/
 
-declare_syntax_cat arith
+declare_syntax_cat arith₆
 
-syntax num : arith
-syntax arith " - " arith : arith
-syntax arith " + " arith : arith
-syntax "(" arith ")" : arith
-syntax "#{" arith "}" : term
+syntax num : arith₆
+syntax arith₆ " - " arith₆ : arith₆
+syntax arith₆ " + " arith₆ : arith₆
+syntax "(" arith₆ ")" : arith₆
+syntax "#{" arith₆ "}" : term
 
 macro_rules
 | `(#{$x:num}) => `($x)
-| `(#{$x:arith + $y:arith}) => `(#{$x} + #{$y})
-| `(#{$x:arith - $y:arith}) => `(#{$x} - #{$y})
-| `(#{($x:arith)}) => `(#{$x})
+| `(#{$x:arith₆ + $y:arith₆}) => `(#{$x} + #{$y})
+| `(#{$x:arith₆ - $y:arith₆}) => `(#{$x} - #{$y})
+| `(#{($x:arith₆)}) => `(#{$x})
 
 #eval #{(12 + 3) - 4} -- 11
+
+/-! ## More elaborate examples -/
+
+/-! ### Binders 2.0 -/
+
+def Set (α : Type u) := α → Prop
+def Set.mem (X : Set α) (x : α) : Prop := X x
+
+instance : Membership α (Set α) where
+  mem := Set.mem
+
+def Set.empty : Set α := λ _ => False
+
+-- Interpret a predicate as a `Set`
+def setOf {α : Type} (p : α → Prop) : Set α := p
+
+declare_syntax_cat binder_construct
+syntax "{ " binder_construct " | " term " }" : term
+
+syntax ident " : " term : binder_construct
+syntax ident " ∈ " term : binder_construct
+
+macro_rules
+| `({ $var:ident : $ty:term | $b:term }) => `(setOf λ ($var : $ty) => $b)
+| `({ $var:ident ∈ $s:term | $b:term }) => `(setOf λ $var => $var ∈ $s ∧ $b)
+
+-- Old examples with better syntax
+#check { x : Nat | x ≤ 1 }
+
+example : 1 ∈ { y : Nat | y ≤ 1 } := by simp [Membership.mem, Set.mem, setOf]
+example : 2 ∈ { y : Nat | y ≤ 3 ∧ 1 ≤ y } := by
+  simp [Membership.mem, Set.mem, setOf]
+
+-- New examples
+def oneSet : Set Nat := λ x => x = 1
+#check { x ∈ oneSet | 10 ≤ x }
+
+example : ∀ x, ¬(x ∈ { y ∈ oneSet | y ≠ 1 }) := by
+  intro (x : Nat) (h : x ∈ { y ∈ oneSet | y ≠ 1})
+  show False
+  have : x ∈ oneSet ∧ x ≠ 1 := h
+  have (And.intro (_ : x ∈ oneSet) (_ : x ≠ 1)) := this
+  have : x = 1 := ‹x ∈ oneSet›
+  contradiction
 
 end Lean4Metaprog.Ch6
