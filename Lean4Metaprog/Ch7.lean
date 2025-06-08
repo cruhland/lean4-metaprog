@@ -61,4 +61,49 @@ elab "#check" "mycheck" : command => Lean.logInfo "got ya!"
 #check "Hello" -- Special elab of string literal: Hello : String
 #check Nat.add -- Nat.add : Nat → Nat → Nat
 
+/-! ### Mini project -/
+
+#check Lean.getEnv
+#check Lean.Elab.expandMacroImpl?
+#check Lean.Elab.liftMacroM
+#check Lean.Elab.Command.commandElabAttribute
+#check Lean.KeyedDeclsAttribute.getEntries
+
+elab "#findCElab" c:command : command => do
+  let env ← Lean.getEnv
+  let macroOpt ← Lean.Elab.liftMacroM <| Lean.Elab.expandMacroImpl? env c
+  match macroOpt with
+  | some (name, _) =>
+    Lean.logInfo s!"Refusing to expand next macro: {name.toString}"
+  | none =>
+    let kind := c.raw.getKind
+    -- Get all declarations annotated with the `command_elab {kind}` attr
+    let elabs := Lean.Elab.Command.commandElabAttribute.getEntries env kind
+    match elabs with
+    | [] =>
+      Lean.logInfo s!"No elaborators for syntax kind {kind}"
+    | _ =>
+      let declNames := elabs.map (·.declName.toString)
+      Lean.logInfo s!"Elaborators for syntax {kind}: {declNames}"
+
+#findCElab def lala := 12
+#findCElab abbrev lolo := 12
+#check Lean.Parser.Command.declaration
+#check Lean.Elab.Command.elabDeclaration
+
+#findCElab #check foo
+#check Lean.Parser.Command.check
+#check Lean4Metaprog.Ch7.mySpecialCheck
+#check Lean.Elab.Command.elabCheck
+
+#findCElab open Hi
+#check Lean.Parser.Command.open
+#check Lean.Elab.Command.elabOpen
+
+#findCElab namespace Foo
+#check Lean.Parser.Command.namespace
+#check Lean.Elab.Command.elabNamespace
+
+#findCElab #findCElab #eval 123 -- even works on itself!
+
 end Lean4Metaprog.Ch7
