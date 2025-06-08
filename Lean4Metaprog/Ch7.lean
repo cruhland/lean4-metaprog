@@ -106,4 +106,24 @@ elab "#findCElab" c:command : command => do
 
 #findCElab #findCElab #eval 123 -- even works on itself!
 
+/-! ## Term elaboration -/
+
+/-! ### Giving meaning to terms -/
+
+#print Lean.Elab.Term.TermElab
+#check Lean.Elab.Term.TermElabM
+#check Lean.Elab.Term.Context
+#check Lean.Elab.Term.State
+
+/-! ### Term elaboration -/
+
+#check Lean.Elab.Term.SyntheticMVarKind
+#check Lean.Elab.Term.SyntheticMVarKind.typeClass
+#check Lean.Elab.Term.SyntheticMVarKind.coe
+#check Lean.Elab.Term.SyntheticMVarKind.tactic
+#check Lean.Elab.Term.SyntheticMVarKind.postponed
+
+#check set_option trace.Elab.postpone true in List.foldr .add 0 [1,2,3]
+#check_failure set_option trace.Elab.postpone true in List.foldr .add
+
 end Lean4Metaprog.Ch7
