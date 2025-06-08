@@ -144,4 +144,36 @@ elab "myterm_2" : term => do
 
 #eval myterm_2 -- => List.get! mytermValues 1 => 2
 
+/-! ### Mini project -/
+
+-- slightly different notation to prevent ambiguity
+syntax (name := myanon) "⟪" term,* "⟫" : term
+
+def getCtors (typ : Lean.Name) : Lean.Meta.MetaM (List Lean.Name) := do
+  let env ← Lean.MonadEnv.getEnv
+  return match env.find? typ with
+  | some (Lean.ConstantInfo.inductInfo val) => val.ctors
+  | _ => []
+
+@[term_elab myanon]
+def myanonImpl : Lean.Elab.Term.TermElab := λ stx typ? => do
+  -- If this has already postponed once, do nothing
+  Lean.Elab.Term.tryPostponeIfNoneOrMVar typ?
+  let some typ := typ? | throwError "expected type must be known"
+  if typ.isMVar then throwError "expected type must be known"
+  let .const base .. :=
+    typ.getAppFn | throwError s!"expected constant or fn app, found {typ}"
+  let [ctor] ← getCtors base | throwError "type must have exactly one ctor"
+  let args := Lean.TSyntaxArray.mk stx[1].getSepArgs
+  let stx ← `($(Lean.mkIdent ctor) $args*)
+  Lean.Elab.Term.elabTerm stx typ -- elaborate recursively
+
+#check (⟪1, sorry⟫ : Fin 12)
+#check_failure ⟪1, sorry⟫ -- expected type must be known
+#check_failure (⟪0⟫ : Nat) -- type must have exactly one ctor
+#check_failure (⟪⟫ : Nat → Nat) -- expected constant or fn app, found Nat → Nat
+
+-- The `<= t` syntax replaces the first two lines of `myanonImpl`
+-- elab "⟨⟨" args:term,* "⟩⟩" : term <= t => do sorry
+
 end Lean4Metaprog.Ch7
