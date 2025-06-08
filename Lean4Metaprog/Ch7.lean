@@ -126,4 +126,22 @@ elab "#findCElab" c:command : command => do
 #check set_option trace.Elab.postpone true in List.foldr .add 0 [1,2,3]
 #check_failure set_option trace.Elab.postpone true in List.foldr .add
 
+/-! ### Making our own -/
+
+syntax (name := myterm1) "myterm_1" : term
+
+def mytermValues := [1, 2]
+
+@[term_elab myterm1]
+def myTerm1Impl : Lean.Elab.Term.TermElab := λ _ _ => do
+  Lean.Meta.mkAppM ``List.get! #[.const ``mytermValues [], Lean.mkNatLit 0]
+
+#eval myterm_1 -- => List.get! mytermValues 0 => 1
+
+-- Also works with `elab`
+elab "myterm_2" : term => do
+  Lean.Meta.mkAppM ``List.get! #[.const ``mytermValues [], Lean.mkNatLit 1]
+
+#eval myterm_2 -- => List.get! mytermValues 1 => 2
+
 end Lean4Metaprog.Ch7
