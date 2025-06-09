@@ -176,4 +176,22 @@ def myanonImpl : Lean.Elab.Term.TermElab := λ stx typ? => do
 -- The `<= t` syntax replaces the first two lines of `myanonImpl`
 -- elab "⟨⟨" args:term,* "⟩⟩" : term <= t => do sorry
 
+/-! ## Exercises -/
+
+-- Exercise 1
+def elabHeart
+    (l : Lean.TSyntax `term) (n : Nat)
+    : Lean.Elab.Term.TermElabM Lean.Expr
+    := do
+  let nExpr ← Lean.Elab.Term.elabTermEnsuringType l (Lean.mkConst ``Nat)
+  return Lean.mkAppN (.const ``Nat.add []) #[nExpr, Lean.mkNatLit n]
+
+elab l:term " ♥ " : term => elabHeart l 1
+elab l:term " ♥♥ " : term => elabHeart l 2
+elab l:term " ♥♥♥ " : term => elabHeart l 3
+
+#eval 6 ♥ -- 7
+#eval 6 ♥♥ -- 8
+#eval 6 ♥♥♥ -- 9
+
 end Lean4Metaprog.Ch7
