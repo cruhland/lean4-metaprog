@@ -194,4 +194,30 @@ elab l:term " ♥♥♥ " : term => elabHeart l 3
 #eval 6 ♥♥ -- 8
 #eval 6 ♥♥♥ -- 9
 
+-- Exercise 2
+syntax (name := «aliasA»)
+  (docComment)? "aliasA " ident " ← " ident* : command
+
+@[command_elab «aliasA»]
+def elabOurAlias : CommandElab := λ stx =>
+  match stx with
+  | `(aliasA%$tk $_:ident ← $xs:ident*) =>
+    Lean.withRef tk $ for x in xs do Lean.logInfo x
+  | _ => Lean.Elab.throwUnsupportedSyntax
+
+aliasA hi ← hello yes
+
+syntax (name := «aliasB») (docComment)? "aliasB " ident " ← " ident* : command
+
+elab_rules : command
+| `(aliasB%$tk $_:ident ← $xs:ident*) =>
+  Lean.withRef tk $ for x in xs do Lean.logInfo x
+
+aliasB hi ← hello yes
+
+elab (docComment)? tk:"aliasC " ident " ← " xs:ident* : command =>
+  Lean.withRef tk $ for x in xs do Lean.logInfo x
+
+aliasC hi ← hello yes
+
 end Lean4Metaprog.Ch7
