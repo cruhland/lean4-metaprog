@@ -110,4 +110,49 @@ elab "test_elabImpExpr " e:imp_expr : term => elabImpExpr e
 #reduce test_elabImpExpr 1 + true
 -- .bin .add (.lit (.nat 1)) (.lit (.bool «true»))
 
+/-! ## Elaborating programs -/
+
+declare_syntax_cat imp_program
+syntax "skip" : imp_program
+syntax ident " := " imp_expr : imp_program
+syntax imp_program ";; " imp_program : imp_program
+syntax
+  "if " imp_expr " then " imp_program " else " imp_program " fi" : imp_program
+syntax "while " imp_expr " do " imp_program " od" : imp_program
+
+partial def elabImpProgram : Syntax → MetaM Expr
+| `(imp_program| skip) =>
+  return .const ``ImpProgram.Skip []
+| `(imp_program| $v:ident := $e:imp_expr) => do
+  let v := mkStrLit v.getId.toString
+  let e ← elabImpExpr e
+  mkAppM ``ImpProgram.Assign #[v, e]
+| `(imp_program| $p₁:imp_program ;; $p₂:imp_program) => do
+  let p₁ ← elabImpProgram p₁
+  let p₂ ← elabImpProgram p₂
+  mkAppM ``ImpProgram.Seq #[p₁, p₂]
+| `(imp_program| if $c then $t else $e fi) => do
+  let c ← elabImpExpr c
+  let t ← elabImpProgram t
+  let e ← elabImpProgram e
+  mkAppM ``ImpProgram.If #[c, t, e]
+| `(imp_program| while $c do $b od) => do
+  let c ← elabImpExpr c
+  let b ← elabImpProgram b
+  mkAppM ``ImpProgram.While #[c, b]
+| _ =>
+  Lean.Elab.throwUnsupportedSyntax
+
+elab ">> " p:imp_program " <<" : term => elabImpProgram p
+
+#reduce >>
+a := 5;;
+if not a and 3 < 4 then
+  c := 5
+else
+  a := a + 1
+fi;;
+b := 10
+<<
+
 end Lean4Metaprog.Ch8
