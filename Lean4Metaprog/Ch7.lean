@@ -220,4 +220,44 @@ elab (docComment)? tk:"aliasC " ident " ← " xs:ident* : command =>
 
 aliasC hi ← hello yes
 
+
+-- Exercise 3
+open Lean.Parser.Tactic (config location rwRuleSeq)
+
+syntax (name := «nthRewriteA»)
+  "nth_rewriteA " (config)? num rwRuleSeq (ppSpace location)? : tactic
+
+@[tactic «nthRewriteA»]
+def elabNthRewrite : Lean.Elab.Tactic.Tactic
+| `(tactic| nth_rewriteA%$tk $_:num [$_,*]) =>
+  Lean.withRef tk $ Lean.logInfo "rewrite target!"
+| `(tactic| nth_rewriteA%$tk $_:num [$_,*] at $_) =>
+  Lean.withRef tk $ Lean.logInfo "rewrite location!"
+| _ =>
+  Lean.Elab.throwUnsupportedSyntax
+
+example : Nat := by nth_rewriteA 5 [Nat.add_zero 3]; exact 0
+example : Nat := by nth_rewriteA 5 [Nat.add_zero 3] at *; exact 0
+
+syntax (name := «nthRewriteB»)
+  "nth_rewriteB " (config)? num rwRuleSeq (ppSpace location)? : tactic
+
+elab_rules : tactic
+| `(tactic| nth_rewriteB%$tk $_:num [$_,*]) =>
+  Lean.withRef tk $ Lean.logInfo "rewrite target!"
+| `(tactic| nth_rewriteB%$tk $_:num [$_,*] at $_) =>
+  Lean.withRef tk $ Lean.logInfo "rewrite location!"
+
+example : Nat := by nth_rewriteB 5 [Nat.add_zero 3]; exact 0
+example : Nat := by nth_rewriteB 5 [Nat.add_zero 3] at *; exact 0
+
+elab tk:"nth_rewriteC "
+    (config)? num rwRuleSeq loc:(ppSpace location)? : tactic =>
+  Lean.withRef tk $ Lean.logInfo $ match loc with
+  | some _ => "rewrite location!"
+  | none => "rewrite target!"
+
+example : Nat := by nth_rewriteC 5 [Nat.add_zero 3]; exact 0
+example : Nat := by nth_rewriteC 5 [Nat.add_zero 3] at *; exact 0
+
 end Lean4Metaprog.Ch7
