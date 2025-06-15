@@ -5,3 +5,4 @@ import Lean4Metaprog.Ch4
 import Lean4Metaprog.Ch5
 import Lean4Metaprog.Ch6
 import Lean4Metaprog.Ch7
+import Lean4Metaprog.Ch8
