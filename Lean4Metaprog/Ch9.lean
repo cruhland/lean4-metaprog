@@ -44,4 +44,33 @@ theorem test_and_then : 1 = 1 ∧ 2 = 2 := by
 
 #print test_and_then
 
+/-! ## Exploring `TacticM` -/
+
+/-! ### The simplest tactic: `sorry` -/
+
+elab "custom_sorry_0" : tactic => do
+  return
+
+#check Lean.Elab.Tactic.withMainContext
+#check Lean.Elab.Tactic.getMainGoal
+
+elab "custom_sorry_1" : tactic =>
+  Lean.Elab.Tactic.withMainContext do
+    let goal ← Lean.Elab.Tactic.getMainGoal
+    let goalDecl ← goal.getDecl
+    let goalType := goalDecl.type
+    dbg_trace f!"goal type: {goalType}"
+
+elab "custom_sorry_2" : tactic =>
+  Lean.Elab.Tactic.withMainContext do
+    let goal ← Lean.Elab.Tactic.getMainGoal
+    Lean.Elab.admitGoal goal
+
+/-
+theorem test_custom_sorry : 1 = 2 := by
+  custom_sorry_2
+
+#print test_custom_sorry
+-/
+
 end Lean4Metaprog.Ch9
