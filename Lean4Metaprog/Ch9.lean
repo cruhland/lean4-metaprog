@@ -148,4 +148,35 @@ theorem assump_wrong (H1 : 1 = 1) : 2 = 2 := by
                   -- unable to find matching hypothesis of type (2 = 2)
 -/
 
+/-! ### Tweaking the context -/
+
+#check Lean.Elab.Tactic.liftMetaTactic
+#check Lean.MVarId.define
+#check Lean.MVarId.assert
+
+open Lean.Elab.Tactic in
+elab "custom_let" n:ident " : " t:term " := " v:term : tactic =>
+  withMainContext do
+    let t ← elabTerm t none
+    let v ← elabTermEnsuringType v t
+    liftMetaTactic λ mvarId => do
+      let mvarId' ← mvarId.define n.getId t v
+      let (_, mvarId') ← mvarId'.intro1P
+      return [mvarId']
+
+open Lean.Elab.Tactic in
+elab "custom_have" n:ident " : " t:term " := " v:term : tactic =>
+  withMainContext do
+    let t ← elabTerm t none
+    let v ← elabTermEnsuringType v t
+    liftMetaTactic λ mvarId => do
+      let mvarId' ← mvarId.assert n.getId t v
+      let (_, mvarId') ← mvarId'.intro1P
+      return [mvarId']
+
+theorem test_let_have : True := by
+  custom_let n : Nat := 5
+  custom_have h : n = n := rfl
+  exact True.intro
+
 end Lean4Metaprog.Ch9
