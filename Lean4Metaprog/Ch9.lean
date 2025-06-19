@@ -225,6 +225,7 @@ elab "step_2" : tactic => do
 
   -- Construct and assign expression for first goal, with new metavariable
   mvarFwd.withContext do
+    -- Using `intro` is sort of cheating, could have used `withLocalDecl`
     let (_, mvarFwd') ← mvarFwd.intro `hFwd
     modify λ _ => { goals := [mvarFwd'] }
 
@@ -274,5 +275,104 @@ theorem gradual (p q : Prop) : p ∧ q ↔ q ∧ p := by
   step_2
   step_3
   step_4
+
+-- Exercise 2
+elab "forker" : tactic => do
+  let mvarId ← getMainGoal
+  let goalType ← getMainTarget
+
+  let .app (.app (.const ``And _) p) q := goalType
+    | Lean.Meta.throwTacticEx `forker mvarId m!"goal not of form `p ∧ q`"
+
+  mvarId.withContext do
+    let mvarP ← mkFreshExprMVar p (userName := `red)
+    let mvarQ ← mkFreshExprMVar q (userName := `blue)
+
+    let proofTerm := mkAppN (.const ``And.intro []) #[p, q, mvarP, mvarQ]
+    mvarId.assign proofTerm
+
+    modify λ s => { goals := [mvarP.mvarId!, mvarQ.mvarId!] ++ s.goals.drop 1 }
+
+example (A B C : Prop) : A → B → C → (A ∧ B) ∧ C := by
+  intro hA hB hC
+  forker
+  forker
+  assumption
+  assumption
+  assumption
+
+-- a) Use `liftMetaTactic`
+elab "forkerA" : tactic => liftMetaTactic λ mvarId => do
+  let goalType := (← mvarId.getDecl).type
+
+  let .app (.app (.const ``And _) p) q := goalType
+    | Lean.Meta.throwTacticEx `forkerA mvarId m!"goal not of form `p ∧ q`"
+
+  let mvarP ← mkFreshExprMVar p (userName := `red)
+  let mvarQ ← mkFreshExprMVar q (userName := `blue)
+
+  let proofTerm := mkAppN (.const ``And.intro []) #[p, q, mvarP, mvarQ]
+  mvarId.assign proofTerm
+
+  return [mvarP.mvarId!, mvarQ.mvarId!]
+
+example (A B C : Prop) : A → B → C → (A ∧ B) ∧ C := by
+  intro hA hB hC
+  forkerA
+  forkerA
+  assumption
+  assumption
+  assumption
+
+-- b) Use `setGoals`
+elab "forkerB" : tactic => do
+  let mvarId ← getMainGoal
+  let goalType ← getMainTarget
+
+  let .app (.app (.const ``And _) p) q := goalType
+    | Lean.Meta.throwTacticEx `forkerB mvarId m!"goal not of form `p ∧ q`"
+
+  mvarId.withContext do
+    let mvarP ← mkFreshExprMVar p (userName := `red)
+    let mvarQ ← mkFreshExprMVar q (userName := `blue)
+
+    let proofTerm := mkAppN (.const ``And.intro []) #[p, q, mvarP, mvarQ]
+    mvarId.assign proofTerm
+
+    let goals ← getGoals
+    setGoals $ [mvarP.mvarId!, mvarQ.mvarId!] ++ goals.drop 1
+
+example (A B C : Prop) : A → B → C → (A ∧ B) ∧ C := by
+  intro hA hB hC
+  forkerB
+  forkerB
+  assumption
+  assumption
+  assumption
+
+-- c) Use `replaceMainGoal`
+elab "forkerC" : tactic => do
+  let mvarId ← getMainGoal
+  let goalType ← getMainTarget
+
+  let .app (.app (.const ``And _) p) q := goalType
+    | Lean.Meta.throwTacticEx `forkerC mvarId m!"goal not of form `p ∧ q`"
+
+  mvarId.withContext do
+    let mvarP ← mkFreshExprMVar p (userName := `red)
+    let mvarQ ← mkFreshExprMVar q (userName := `blue)
+
+    let proofTerm := mkAppN (.const ``And.intro []) #[p, q, mvarP, mvarQ]
+    mvarId.assign proofTerm
+
+    replaceMainGoal [mvarP.mvarId!, mvarQ.mvarId!]
+
+example (A B C : Prop) : A → B → C → (A ∧ B) ∧ C := by
+  intro hA hB hC
+  forkerC
+  forkerC
+  assumption
+  assumption
+  assumption
 
 end Lean4Metaprog.Ch9
