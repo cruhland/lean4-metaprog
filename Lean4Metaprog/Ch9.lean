@@ -32,4 +32,16 @@ macro_rules
 
 example : 43 = 43 ∧ 42 = 42 := by custom_tactic
 
+/-! ### Implementing `<;>`: tactic combinators by macro expansion -/
+
+syntax tactic " and_then " tactic : tactic
+
+macro_rules
+| `(tactic| $a:tactic and_then $b:tactic) => `(tactic| $a; all_goals $b:tactic)
+
+theorem test_and_then : 1 = 1 ∧ 2 = 2 := by
+  apply And.intro and_then rfl
+
+#print test_and_then
+
 end Lean4Metaprog.Ch9
