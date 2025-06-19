@@ -73,4 +73,79 @@ theorem test_custom_sorry : 1 = 2 := by
 #print test_custom_sorry
 -/
 
+/-! ### The `custom_assump` tactic: accessing hypotheses -/
+
+elab "custom_assump_0" : tactic =>
+  Lean.Elab.Tactic.withMainContext do
+    let goalType ← Lean.Elab.Tactic.getMainTarget
+    dbg_trace f!"goal type: {goalType}"
+
+elab "list_local_decls_1" : tactic =>
+  Lean.Elab.Tactic.withMainContext do
+    let ctx ← Lean.MonadLCtx.getLCtx
+    ctx.forM λ decl: Lean.LocalDecl => do
+      let declExpr := decl.toExpr
+      let declName := decl.userName
+      dbg_trace f!"+ local decl: name: {declName} | expr: {declExpr}"
+
+elab "list_local_decls_2" : tactic =>
+  Lean.Elab.Tactic.withMainContext do
+    let ctx ← Lean.MonadLCtx.getLCtx
+    ctx.forM λ decl: Lean.LocalDecl => do
+      let declExpr := decl.toExpr
+      let declName := decl.userName
+      let declType ← Lean.Meta.inferType declExpr
+      dbg_trace
+        f!"+ local decl: name: {declName} | expr: {declExpr} | type: {declType}"
+
+elab "list_local_decls_3" : tactic =>
+  Lean.Elab.Tactic.withMainContext do
+    let goalType ← Lean.Elab.Tactic.getMainTarget
+    let ctx ← Lean.MonadLCtx.getLCtx
+    ctx.forM λ decl: Lean.LocalDecl => do
+      let declExpr := decl.toExpr
+      let declName := decl.userName
+      let declType ← Lean.Meta.inferType declExpr
+      let eq? ← Lean.Meta.isExprDefEq declType goalType
+      dbg_trace f!"+ local decl[EQUAL? {eq?}]: name: {declName}"
+
+elab "custom_assump_1" : tactic =>
+  Lean.Elab.Tactic.withMainContext do
+    let goalType ← Lean.Elab.Tactic.getMainTarget
+    let ctx ← Lean.MonadLCtx.getLCtx
+    let option_matching_expr ← ctx.findDeclM? λ decl: Lean.LocalDecl => do
+      let declExpr := decl.toExpr
+      let declType ← Lean.Meta.inferType declExpr
+      if (← Lean.Meta.isExprDefEq declType goalType)
+      then return some declExpr
+      else return none
+    dbg_trace f!"matching_expr: {option_matching_expr}"
+
+elab "custom_assump_2" : tactic =>
+  Lean.Elab.Tactic.withMainContext do
+    let goal ← Lean.Elab.Tactic.getMainGoal
+    let goalType ← Lean.Elab.Tactic.getMainTarget
+    let ctx ← Lean.MonadLCtx.getLCtx
+    let eqExprOpt ← ctx.findDeclM? λ decl: Lean.LocalDecl => do
+      let declExpr := decl.toExpr
+      let declType ← Lean.Meta.inferType declExpr
+      if ← Lean.Meta.isExprDefEq declType goalType
+      then return some declExpr
+      else return none
+    match eqExprOpt with
+    | some e =>
+      Lean.Elab.Tactic.closeMainGoal `custom_assump_2 e
+    | none =>
+      let msg := m!"unable to find matching hypothesis of type ({goalType})"
+      Lean.Meta.throwTacticEx `custom_assump_2 goal msg
+
+theorem assump_correct (_ : 1 = 1) (H2 : 2 = 2) : 2 = 2 := by
+  custom_assump_2
+
+/-
+theorem assump_wrong (H1 : 1 = 1) : 2 = 2 := by
+  custom_assump_2 -- tactic 'custom_assump_2' failed,
+                  -- unable to find matching hypothesis of type (2 = 2)
+-/
+
 end Lean4Metaprog.Ch9
