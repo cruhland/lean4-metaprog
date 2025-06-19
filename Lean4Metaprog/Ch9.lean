@@ -179,4 +179,19 @@ theorem test_let_have : True := by
   custom_have h : n = n := rfl
   exact True.intro
 
+/-! ### "Getting" and "setting" the list of goals -/
+
+elab "reverse_goals" : tactic =>
+  Lean.Elab.Tactic.withMainContext do
+    let goals : List Lean.MVarId ← Lean.Elab.Tactic.getGoals
+    Lean.Elab.Tactic.setGoals goals.reverse
+
+theorem test_reverse_goals : (1 = 1 ∧ 2 = 2) ∧ 3 = 3 := by
+  constructor
+  constructor
+  -- goals: `1 = 1`, `2 = 2`, `3 = 3`
+  reverse_goals
+  -- goals: `3 = 3`, `2 = 2`, `1 = 1`
+  all_goals trivial
+
 end Lean4Metaprog.Ch9
