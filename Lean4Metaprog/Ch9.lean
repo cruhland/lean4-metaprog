@@ -194,4 +194,85 @@ theorem test_reverse_goals : (1 = 1 ∧ 2 = 2) ∧ 3 = 3 := by
   -- goals: `3 = 3`, `2 = 2`, `1 = 1`
   all_goals trivial
 
+/-! ## Exercises -/
+
+open Lean (Expr mkAppN mkArrow)
+open Lean.Elab.Tactic
+open Lean.Meta (mkFreshExprMVar)
+
+-- Exercise 1
+elab "step_1" : tactic => do
+  let mvarId ← getMainGoal
+  let goalType ← getMainTarget
+
+  let .app (.app (.const ``Iff _) a) b := goalType
+    | throwError "Goal type is not of the form `a ↔ b`"
+
+  let mvarId1 ← mkFreshExprMVar (← mkArrow a b) (userName := `red)
+  let mvarId2 ← mkFreshExprMVar (← mkArrow b a) (userName := `blue)
+
+  mvarId.assign (mkAppN (.const ``Iff.intro []) #[a, b, mvarId1, mvarId2])
+  modify λ _ => { goals := [mvarId1.mvarId!, mvarId2.mvarId!]}
+
+elab "step_2" : tactic => do
+  -- Get goals and extract type information
+  let [mvarFwd, mvarRev] ← getGoals | throwError "expected two goals"
+  let fwdType := (← mvarFwd.getDecl).type
+  let .forallE _ pq qp _ := fwdType
+    | throwError "first goal must be of the form `a → b`"
+  let .app (.app (.const ``And _) p) q := pq
+    | throwError "hypothesis of first goal must be `p ∧ q`"
+
+  -- Construct and assign expression for first goal, with new metavariable
+  mvarFwd.withContext do
+    let (_, mvarFwd') ← mvarFwd.intro `hFwd
+    modify λ _ => { goals := [mvarFwd'] }
+
+  -- Construct and assign expression for second goal
+  let revHyp := .bvar 0
+  let rightApp := mkAppN (.const ``And.right []) #[q, p, revHyp]
+  let leftApp := mkAppN (.const ``And.left []) #[q, p, revHyp]
+  let andApp := mkAppN (.const ``And.intro []) #[p, q, rightApp, leftApp]
+  let revExpr := .lam `hRev qp andApp .default
+  mvarRev.assign revExpr
+
+elab "step_3" : tactic => do
+  withMainContext do
+    let mvarId ← getMainGoal
+    let goalType ← getMainTarget
+    let .app (.app (.const ``And _) q) p := goalType
+      | throwError "goal must be of the form `q ∧ p`"
+
+    let mvarIdL ← mkFreshExprMVar q
+    let mvarIdR ← mkFreshExprMVar p
+    let andExpr := mkAppN (.const ``And.intro []) #[q, p, mvarIdL, mvarIdR]
+    mvarId.assign andExpr
+
+    modify λ _ => { goals := [mvarIdL.mvarId!, mvarIdR.mvarId!] }
+
+elab "step_4" : tactic => do
+  let [mvarL, mvarR] ← getGoals | throwError "expected two goals"
+
+  mvarL.withContext do
+    let lctx ← Lean.MonadLCtx.getLCtx
+    let some ldecl := lctx.findFromUserName? `hFwd | throwError "hyp not found"
+    let .app (.app (.const ``And _) p) q := ldecl.type | throwError "wrong type"
+    let hyp := ldecl.toExpr
+    let exprL := mkAppN (.const ``And.right []) #[p, q, hyp]
+    mvarL.assign exprL
+
+  mvarR.withContext do
+    let lctx ← Lean.MonadLCtx.getLCtx
+    let some ldecl := lctx.findFromUserName? `hFwd | throwError "hyp not found"
+    let .app (.app (.const ``And _) p) q := ldecl.type | throwError "wrong type"
+    let hyp := ldecl.toExpr
+    let exprR := mkAppN (.const ``And.left []) #[p, q, hyp]
+    mvarR.assign exprR
+
+theorem gradual (p q : Prop) : p ∧ q ↔ q ∧ p := by
+  step_1
+  step_2
+  step_3
+  step_4
+
 end Lean4Metaprog.Ch9
