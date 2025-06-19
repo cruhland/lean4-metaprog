@@ -375,4 +375,37 @@ example (A B C : Prop) : A → B → C → (A ∧ B) ∧ C := by
   assumption
   assumption
 
+-- Exercise 3
+-- Part a
+elab "introductor_a" : tactic =>
+  liftMetaTactic λ mvarId => do
+    let (_, mvarId') ← mvarId.introN 2
+    return [mvarId']
+
+example (a b c : Nat) : (ab : a = b) → (bc : b = c) → a = c := by
+  introductor_a
+  exact trans ‹a = b› ‹b = c›
+
+-- Part b
+elab "introductor_b" : tactic =>
+  liftMetaTactic λ mvarId => do
+    let (_, mvarId') ← mvarId.intro1P
+    return [mvarId']
+
+example (a b c : Nat) : (ab : a = b) → (bc : b = c) → a = c := by
+  introductor_b
+  intro
+  exact trans ab ‹b = c›
+
+-- Part c
+elab "introductor_c" : tactic =>
+  liftMetaTactic λ mvarId => do
+    let (_, mvarId') ← mvarId.intro `hello
+    return [mvarId']
+
+example (a b c : Nat) : (ab : a = b) → (bc : b = c) → a = c := by
+  introductor_c
+  intro
+  exact trans hello ‹b = c›
+
 end Lean4Metaprog.Ch9
